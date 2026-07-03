@@ -8,7 +8,7 @@
 //    ANTHROPIC_API_KEY = ta_clé_api (créée sur console.anthropic.com)
 // 3. Le front-end appelle POST /api/generate au lieu d'appeler Anthropic directement.
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // On n'accepte que les requêtes POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Méthode non autorisée. Utilise POST.' });
@@ -81,4 +81,4 @@ export default async function handler(req, res) {
     console.error('Erreur serveur:', err);
     return res.status(500).json({ error: "Erreur serveur, réessaie dans un instant." });
   }
-}
+};
