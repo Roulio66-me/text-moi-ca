@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Texte-moi ça</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FFFFFF;
+    --bg-soft: #F7F5F2;
+    --bg-dark: #14121B;
+    --ink: #16151C;
+    --ink-soft: #6E6B78;
+    --ink-faint: #A6A3AE;
+    --c-coral: #FF6F5E;
+    --c-violet: #7A5CFA;
+    --c-sky: #4FB8E8;
+    --c-amber: #FFB648;
+    --border: rgba(20,18,26,0.09);
+    --shadow: rgba(30,20,50,0.14);
+    --font-display: 'Plus Jakarta Sans', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --grad: linear-gradient(120deg, var(--c-coral), var(--c-violet) 60%, var(--c-sky));
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family: var(--font-body); color: var(--ink); background: var(--bg); }
+  h1,h2,h3{ font-family: var(--font-display); }
+  .gradient-text{
+    background: var(--grad);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+
+  /* ---------- nav ---------- */
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 22px 48px; position: sticky; top:0; background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(10px); z-index: 50; border-bottom: 1px solid var(--border);
+  }
+  .logo-mark{ display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .logo-icon{
+    width:34px; height:34px; border-radius:11px; background: var(--grad); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 10px 18px -9px rgba(122,92,250,0.55);
+  }
+  .logo-icon svg{ width:17px; height:17px; display:block; }
+  .logo-text{ font-family: var(--font-display); font-weight:800; font-size:19px; letter-spacing:-0.01em; color: var(--ink); }
+  .logo-text .gradient-text{ font-weight:800; }
+  .nav-links{ display:flex; gap: 32px; }
+  .nav-links a{ color: var(--ink-soft); text-decoration:none; font-size:14.5px; font-weight:500; cursor:pointer; }
+  .nav-links a:hover{ color: var(--ink); }
+  .dev-nav{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:200; }
+  .dev-nav button{
+    font-family: var(--font-mono); font-size: 11px; background: var(--bg-dark); color:#fff;
+    border:none; border-radius: 100px; padding: 8px 14px; cursor:pointer; opacity:.88;
+  }
+  .dev-nav button:hover{ opacity:1; }
+
+  .btn-gradient{
+    background: var(--grad); color:#fff; border:none; padding: 16px 30px; border-radius: 100px;
+    font-family: var(--font-body); font-weight:700; font-size:15.5px; cursor:pointer;
+    box-shadow: 0 16px 32px -12px rgba(122,92,250,0.5);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-gradient:hover{ transform: translateY(-2px); box-shadow: 0 20px 38px -12px rgba(122,92,250,0.6); }
+  .btn-gradient:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+  .btn-gradient.full{ width:100%; }
+  .btn-text{ background:none; border:none; color: var(--ink); font-weight:600; font-size:15px; cursor:pointer; font-family: var(--font-body); }
+  .btn-text:hover{ color: var(--c-violet); }
+  .nav-cta{
+    background: var(--grad); color:#fff; border:none; padding:11px 20px; border-radius:100px;
+    font-weight:600; font-size:14px; cursor:pointer; font-family: var(--font-body);
+    box-shadow: 0 10px 22px -10px rgba(122,92,250,0.5);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .nav-cta:hover{ transform: translateY(-2px); box-shadow: 0 14px 26px -10px rgba(122,92,250,0.6); }
+
+  /* ---------- screens ---------- */
+  .screen{ display:none; }
+  .screen.active{ display:block; animation: fadeUp .4s ease; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ================= LANDING ================= */
+  .hero{
+    display:grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items:center;
+    padding: 80px 48px 60px; max-width:1280px; margin:0 auto;
+  }
+  .hero-eyebrow{
+    font-family: var(--font-mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase;
+    color: var(--c-violet); margin-bottom:20px;
+  }
+  .hero-title{ font-size:52px; font-weight:800; line-height:1.12; letter-spacing:-0.02em; margin-bottom:22px; }
+  .hero-sub{ font-size:17px; line-height:1.6; color: var(--ink-soft); max-width:440px; margin-bottom:34px; }
+  .hero-actions{ display:flex; align-items:center; gap:26px; }
+
+  .hero-visual{ position:relative; display:flex; justify-content:center; align-items:center; min-height:420px; }
+  .hero-visual::before{
+    content:""; position:absolute; width:460px; height:460px; border-radius:50%;
+    background: var(--grad); filter: blur(120px); opacity:0.22; z-index:0; pointer-events:none;
+  }
+  .hero-deco{ position:absolute; border-radius:50%; z-index:0; pointer-events:none; animation: heroFloat 6s ease-in-out infinite; }
+  .hero-deco.solid{ opacity:0.85; }
+  .hero-deco.ring{ background:none; border:2.5px solid; opacity:0.4; }
+  @keyframes heroFloat{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-14px); } }
+  .float-card{ z-index:1; }
+  .float-chip{ z-index:2; }
+  .float-card{
+    width: 320px; border-radius: 30px; padding: 26px;
+    background: var(--grad);
+    box-shadow: 0 40px 70px -20px var(--shadow);
+    transform: rotate(-5deg);
+    position:relative; overflow:hidden;
+  }
+  .float-card::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.25), transparent 55%);
+  }
+  .chat-bubble{ position:relative; border-radius:16px; padding:12px 15px; font-size:13.5px; line-height:1.45; margin-bottom:10px; max-width:88%; }
+  .chat-bubble.incoming{ background: rgba(255,255,255,0.94); color: var(--ink); border-bottom-left-radius:4px; }
+  .chat-bubble.outgoing{ background: var(--bg-dark); color:#fff; margin-left:auto; border-bottom-right-radius:4px; }
+  .float-chip{
+    position:absolute; background:#fff; border-radius:16px; padding:10px 16px;
+    box-shadow: 0 14px 30px -10px var(--shadow); font-size:12.5px; font-weight:600; display:flex; align-items:center; gap:8px;
+  }
+  .chip-tone{ top: 10px; left: -10px; color: var(--c-sky); }
+  .chip-tone::before{ content:""; width:8px; height:8px; border-radius:50%; background: var(--c-sky); }
+  .chip-stat{ bottom: 6px; right: -14px; color: var(--c-coral); }
+  .chip-stat::before{ content:""; width:8px; height:8px; border-radius:50%; background: var(--c-coral); }
+
+  .trust-strip{ text-align:center; padding: 26px 24px; color: var(--ink-faint); font-size:13.5px; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .trust-strip strong{ color: var(--ink-soft); }
+
+  .section{ padding: 90px 48px; max-width:1280px; margin:0 auto; }
+  .section.bg-soft{ background: var(--bg-soft); max-width:none; position:relative; overflow:hidden; }
+  .section.bg-soft::before{ content:""; position:absolute; top:-140px; right:-100px; width:420px; height:420px; background: var(--grad); filter: blur(100px); opacity:0.28; border-radius:50%; pointer-events:none; z-index:0; }
+  .section.bg-soft::after{ content:""; position:absolute; bottom:-160px; left:-120px; width:380px; height:380px; background: var(--grad); filter: blur(110px); opacity:0.2; border-radius:50%; pointer-events:none; z-index:0; }
+  .section.bg-soft > .inner{ max-width:1280px; margin:0 auto; position:relative; z-index:1; }
+  .section-head{ text-align:center; max-width:560px; margin: 0 auto 50px; }
+  .section-head h2{ font-size:34px; font-weight:800; letter-spacing:-0.01em; margin-bottom:14px; }
+  .section-head p{ color: var(--ink-soft); font-size:15.5px; line-height:1.6; }
+
+  .tone-cloud{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+  .tone-cloud .chip{ padding:13px 22px; border-radius:100px; font-weight:700; font-size:14px; color:#fff; cursor:pointer; border:none; transition: transform .15s ease, box-shadow .15s ease; font-family: var(--font-body); }
+  .tone-cloud .chip:hover{ transform: translateY(-3px); }
+
+  .tone-carousel{
+    overflow:hidden; width:100%; padding: 36px 0 10px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
+    mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
+  }
+  .tone-track{
+    display:flex; gap:22px; width:max-content;
+    animation: toneScroll 34s linear infinite;
+  }
+  .tone-showcase-card{
+    width: 208px; flex-shrink:0; background:#fff; border:1px solid var(--border); border-radius:22px;
+    padding: 20px; box-shadow: 0 20px 40px -26px var(--shadow); cursor:pointer;
+    transform: rotate(var(--rot, 0deg));
+    transition: transform .3s cubic-bezier(.2,.8,.3,1.2), box-shadow .3s ease;
+  }
+  .tone-showcase-card:hover{
+    transform: rotate(0deg) translateY(-10px) scale(1.06);
+    box-shadow: 0 32px 55px -20px var(--shadow);
+    position:relative; z-index: 5;
+  }
+  .tsc-top{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .tsc-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .tsc-name{ font-weight:700; font-size:14px; color: var(--ink); }
+  .tsc-bubble{
+    font-size:12.5px; line-height:1.5; color: var(--ink); border:1px solid; border-radius:14px 14px 14px 4px; padding:12px 13px;
+  }
+  @keyframes toneScroll{ from{ transform: translateX(0); } to{ transform: translateX(-50%); } }
+  @media (max-width: 560px){ .tone-showcase-card{ width:180px; } }
+
+  .stats-dark{ background: var(--bg-dark); color:#fff; padding: 80px 48px; position:relative; overflow:hidden; }
+  .stats-dark::before{ content:""; position:absolute; top:-160px; left:8%; width:520px; height:520px; background: var(--grad); filter: blur(150px); opacity:0.4; border-radius:50%; pointer-events:none; }
+  .stats-dark .inner{ max-width:1280px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center; position:relative; z-index:1; }
+  .stats-dark h2{ font-size:32px; font-weight:800; line-height:1.25; margin-bottom:16px; }
+  .stats-dark p{ color: rgba(255,255,255,0.6); font-size:15px; line-height:1.6; max-width:400px; }
+  .stat-row{ display:flex; gap: 40px; }
+  .stat-num{ font-size:38px; font-weight:800; font-family: var(--font-display); }
+  .stat-num.g1{ color: var(--c-coral); }
+  .stat-num.g2{ color: var(--c-sky); }
+  .stat-num.g3{ color: var(--c-amber); }
+  .stat-label{ font-size:12.5px; color: rgba(255,255,255,0.5); margin-top:6px; }
+
+  .steps-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .step-card{ background:#fff; border:1px solid var(--border); border-radius:22px; padding:30px; box-shadow: 0 20px 40px -30px var(--shadow); }
+  .step-num{ font-family: var(--font-display); font-weight:800; font-size:14px; color:#fff; width:34px; height:34px; border-radius:10px; background: var(--grad); display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+  .step-card h3{ font-size:17px; font-weight:700; margin-bottom:8px; }
+  .step-card p{ font-size:13.5px; color: var(--ink-soft); line-height:1.55; }
+
+  .quote-section{ text-align:center; padding: 90px 48px; }
+  .quote-section blockquote{ font-family: var(--font-display); font-size:28px; font-weight:600; line-height:1.4; max-width:720px; margin:0 auto 22px; letter-spacing:-0.01em; }
+  .quote-attr{ color: var(--ink-soft); font-size:14px; }
+
+  .cta-banner{ background: var(--grad); border-radius: 32px; margin: 0 48px 90px; padding: 70px 48px; text-align:center; color:#fff; }
+  .cta-banner h2{ font-size:34px; font-weight:800; margin-bottom:24px; }
+  .cta-banner .btn-gradient{ background:#fff; color: var(--ink); box-shadow:none; }
+
+  footer{ padding: 40px 48px; text-align:center; color: var(--ink-faint); font-size:13px; }
+
+  /* ================= APP SCREENS (onboarding / outil / paywall) ================= */
+  .app-shell{ min-height:100vh; background: var(--bg-soft); }
+  .app-nav{ display:flex; align-items:center; justify-content:space-between; padding:22px 48px; background:#fff; border-bottom:1px solid var(--border); }
+  .phase-dots{ display:flex; gap:8px; }
+  .phase-dots span{ width:6px; height:6px; border-radius:50%; background: var(--border); transition: all .3s ease; }
+  .phase-dots span.active{ background: var(--c-violet); width:22px; border-radius:4px; }
+
+  .app-body{ padding: 64px 24px 100px; }
+
+  /* PAYWALL — fond stylé */
+  #screen-paywall{
+    position:relative; overflow:hidden;
+    background: linear-gradient(180deg, #FBF9FF 0%, var(--bg-soft) 55%);
+  }
+  #screen-paywall::before{
+    content:""; position:absolute; top:-180px; right:-140px; width:520px; height:520px;
+    background: var(--grad); filter: blur(140px); opacity:0.28; border-radius:50%; pointer-events:none;
+  }
+  #screen-paywall::after{
+    content:""; position:absolute; bottom:-200px; left:-160px; width:460px; height:460px;
+    background: var(--grad); filter: blur(150px); opacity:0.2; border-radius:50%; pointer-events:none;
+  }
+  #screen-paywall .app-body{ position:relative; z-index:1; }
+  .container{ max-width:560px; margin:0 auto; }
+  .container-wide{ max-width:900px; margin:0 auto; }
+
+  .app-eyebrow{ font-family: var(--font-mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color: var(--c-violet); margin-bottom:14px; }
+  .app-title{ font-family: var(--font-display); font-weight:800; font-size:36px; line-height:1.2; letter-spacing:-0.01em; margin-bottom:16px; }
+  .app-sub{ font-size:15.5px; line-height:1.6; color: var(--ink-soft); margin-bottom:30px; max-width:480px; }
+
+  .option-list{ display:flex; flex-direction:column; gap:12px; max-width:480px; }
+  .option{
+    text-align:left; background:#fff; border:1px solid var(--border); border-radius:16px; padding:17px 20px;
+    color: var(--ink); font-size:15px; font-weight:600; cursor:pointer; transition: all .15s ease;
+    display:flex; align-items:center; justify-content:space-between; box-shadow: 0 10px 24px -20px var(--shadow);
+  }
+  .option:hover{ border-color: var(--c-violet); }
+  .option.selected{ border-color: var(--c-violet); background: #F4F1FF; }
+  .option .arrow{ color: var(--ink-faint); font-family: var(--font-mono); }
+  .step-counter{ font-family: var(--font-mono); font-size:12px; color: var(--ink-faint); margin-bottom:16px; }
+
+  .loader-wrap{ display:flex; flex-direction:column; align-items:flex-start; gap:22px; padding-top:60px; }
+  .loader-ring{ width:44px; height:44px; border-radius:50%; border:3px solid var(--border); border-top-color: var(--c-violet); animation: spin .9s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+  .loader-line{ font-family: var(--font-mono); font-size:13px; color: var(--ink-soft); min-height:16px; }
+  .progress-track{ width:220px; height:4px; background: var(--border); border-radius:4px; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background: var(--grad); border-radius:4px; transition: width 2.2s cubic-bezier(.2,.7,.3,1); }
+
+  .tool-layout{ display:grid; grid-template-columns: 1.15fr .85fr; gap:40px; align-items:start; }
+  @media (max-width: 860px){ .tool-layout{ grid-template-columns:1fr; } .hero{ grid-template-columns:1fr; } .stats-dark .inner{ grid-template-columns:1fr; } .tone-grid, .steps-grid{ grid-template-columns:1fr 1fr; } }
+  @media (max-width: 560px){ .tone-grid, .steps-grid{ grid-template-columns:1fr; } .nav-links{ display:none; } }
+
+  .field-label{ font-size:13px; font-weight:700; color: var(--ink-soft); margin-bottom:8px; display:block; }
+  textarea{
+    width:100%; background:#fff; border:1px solid var(--border); border-radius:16px; padding:16px; color:var(--ink);
+    font-family: var(--font-body); font-size:15px; line-height:1.55; resize:vertical; min-height:130px; margin-bottom:20px;
+    box-shadow: 0 10px 24px -20px var(--shadow);
+  }
+  textarea:focus{ outline:none; border-color: var(--c-violet); }
+  textarea::placeholder{ color: var(--ink-faint); }
+
+  .side-panel{ background:#fff; border:1px solid var(--border); border-radius:22px; padding:28px; box-shadow: 0 20px 40px -28px var(--shadow); }
+  .tone-chips{ display:flex; flex-wrap:wrap; gap:9px; margin-top:12px; }
+  .tone-chip{ padding:9px 14px; border-radius:100px; border:1.5px solid var(--border); background:#fff; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:7px; transition: all .15s ease; color: var(--ink); font-family: var(--font-body); }
+  .tone-chip:hover{ border-color: var(--tc); }
+  .tone-chip .dot{ width:8px; height:8px; border-radius:50%; background: var(--tc); flex-shrink:0; }
+  .tone-chip.active{ background: var(--tc); border-color: var(--tc); color:#fff; box-shadow: 0 10px 20px -12px var(--tc); }
+  .tone-chip.active .dot{ background:#fff; }
+  .selected-tone{ font-family: var(--font-display); font-weight:700; font-size:16px; color: var(--ink); margin-top:16px; }
+
+  .results{ display:flex; flex-direction:column; gap:14px; margin-top:26px; }
+  .bubble{ background:#fff; border:1px solid var(--border); border-radius:18px 18px 18px 4px; padding:16px 18px; font-size:14.5px; line-height:1.55; box-shadow: 0 14px 30px -24px var(--shadow); }
+  .bubble-actions{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border); }
+  .copy-btn{ background:none; border:none; color: var(--c-violet); font-size:13px; font-weight:700; cursor:pointer; font-family: var(--font-body); }
+  .copy-btn:hover{ color: var(--c-coral); }
+  .variant-tag{ font-family: var(--font-mono); font-size:10.5px; color: var(--ink-faint); text-transform:uppercase; letter-spacing:.08em; }
+  .error-box{ background: rgba(255,111,94,0.1); border:1px solid rgba(255,111,94,0.3); color:#C24333; border-radius:14px; padding:13px 16px; font-size:13.5px; margin-top:16px; }
+  .quota-label{ font-family: var(--font-mono); font-size:12px; color: var(--ink-faint); text-align:center; margin-top:10px; }
+
+  .badge-social{ display:flex; align-items:center; gap:8px; background:#fff; border:1px solid var(--border); border-radius:100px; padding:8px 16px; width:fit-content; font-size:12.5px; color: var(--ink-soft); margin-bottom:22px; box-shadow: 0 10px 24px -20px var(--shadow); }
+  .stars{ color: var(--c-amber); letter-spacing:1px; font-size:11px; }
+  .countdown{ font-family: var(--font-mono); color:#C24333; font-size:13px; background: rgba(255,111,94,0.08); border:1px solid rgba(255,111,94,0.25); border-radius:12px; padding:10px 14px; margin-bottom:26px; display:inline-block; }
+
+  .plans{ display:flex; flex-direction:column; gap:12px; margin-bottom:22px; max-width:480px; }
+  .plan{ position:relative; border:1px solid var(--border); background:#fff; border-radius:16px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:all .15s ease; box-shadow: 0 10px 24px -20px var(--shadow); }
+  .plan.best{ border-color: var(--c-violet); background: #F4F1FF; }
+  .plan .ribbon{ position:absolute; top:-10px; left:16px; background: var(--grad); color:#fff; font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:100px; }
+  .plan-name{ font-size:14px; font-weight:700; }
+  .plan-sub{ font-size:12px; color: var(--ink-faint); margin-top:2px; }
+  .plan-price{ font-family: var(--font-display); font-size:21px; text-align:right; font-weight:700; }
+  .plan-price small{ font-family: var(--font-body); font-size:11px; color: var(--ink-faint); display:block; font-weight:400; }
+  .radio{ width:18px; height:18px; border-radius:50%; border:2px solid var(--border); margin-right:14px; flex-shrink:0; position:relative; }
+  .plan.best .radio{ border-color: var(--c-violet); }
+  .plan.best .radio::after{ content:""; position:absolute; inset:3px; border-radius:50%; background: var(--c-violet); }
+  .plan-row{ display:flex; align-items:center; }
+  .fine-print{ font-size:11.5px; color: var(--ink-faint); line-height:1.5; margin-top:16px; max-width:480px; }
+  .skip-link{ font-size:13px; color: var(--ink-faint); margin-top:18px; text-decoration:underline; cursor:pointer; display:inline-block; }
+  .skip-link:hover{ color: var(--ink-soft); }
+  .cta-wrap{ max-width:480px; }
+
+  .toast{ position:fixed; bottom:70px; left:50%; transform:translateX(-50%) translateY(10px); background: var(--bg-dark); color:#fff; font-size:13px; padding:12px 20px; border-radius:100px; opacity:0; transition:all .25s ease; pointer-events:none; z-index:300; white-space:nowrap; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ================= LANDING ================= -->
+<div class="screen active" id="screen-landing">
+  <nav class="nav">
+    <div class="logo-mark" onclick="goToScreen(0)">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V14C20 15.1046 19.1046 16 18 16H10L6 19.5V16H6C4.89543 16 4 15.1046 4 14V6Z" fill="white"/>
+          <circle cx="8.5" cy="10" r="1.15" fill="#7A5CFA"/>
+          <circle cx="12" cy="10" r="1.15" fill="#7A5CFA"/>
+          <circle cx="15.5" cy="10" r="1.15" fill="#7A5CFA"/>
+        </svg>
+      </div>
+      <span class="logo-text">Texte-moi <span class="gradient-text">ça</span></span>
+    </div>
+    <div class="nav-links">
+      <a onclick="scrollToSteps()">Comment ça marche</a>
+      <a onclick="goToScreen(3)">Tarifs</a>
+    </div>
+    <button class="nav-cta" onclick="goToScreen(1)">Essayer gratuitement</button>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-text">
+      <div class="hero-eyebrow">L'assistant pour les messages difficiles</div>
+      <h1 class="hero-title">Ne reste plus jamais<br><span class="gradient-text">bloqué devant un message.</span></h1>
+      <p class="hero-sub">Décris ta situation, choisis ton ton, obtiens deux réponses prêtes à envoyer. En moins de 10 secondes.</p>
+      <div class="hero-actions">
+        <button class="btn-gradient" onclick="goToScreen(1)">Écrire mon message</button>
+        <button class="btn-text" onclick="scrollToSteps()">Voir comment ça marche →</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-deco solid" style="width:14px;height:14px; top:8%; left:10%; background:var(--c-amber); animation-delay:0s;"></div>
+      <div class="hero-deco ring" style="width:26px;height:26px; top:65%; left:4%; border-color:var(--c-sky); animation-delay:.6s;"></div>
+      <div class="hero-deco solid" style="width:9px;height:9px; top:20%; right:6%; background:var(--c-coral); animation-delay:1.1s;"></div>
+      <div class="hero-deco ring" style="width:18px;height:18px; bottom:10%; right:14%; border-color:var(--c-violet); animation-delay:1.7s;"></div>
+      <div class="hero-deco solid" style="width:7px;height:7px; bottom:22%; left:20%; background:var(--c-violet); animation-delay:2.2s;"></div>
+      <div class="float-card">
+        <div class="chat-bubble incoming">Tu peux pas juste répondre à mes messages ??</div>
+        <div class="chat-bubble outgoing">Je comprends que ça t'agace, promis je fais un effort pour répondre plus vite 🙂</div>
+      </div>
+      <div class="float-chip chip-tone">Ton : Calme</div>
+      <div class="float-chip chip-stat">2 variantes générées</div>
+    </div>
+  </section>
+
+  <div class="trust-strip">Déjà utilisé pour <strong>2 400+ messages</strong> envoyés avec plus de confiance</div>
+
+  <section class="section bg-soft">
+    <div class="inner">
+      <div class="section-head">
+        <h2>Un ton pour <span class="gradient-text">chaque situation.</span></h2>
+        <p>Le bon message ne se formule pas de la même façon avec ton coloc, ton boss ou ton crush. 15 tons disponibles, chacun avec sa propre couleur.</p>
+      </div>
+      <div class="tone-carousel">
+        <div class="tone-track" id="tone-track"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats-dark">
+    <div class="inner">
+      <div>
+        <h2>Conçu pour ne plus jamais <span class="gradient-text">chercher tes mots.</span></h2>
+        <p>Un outil simple, pensé pour les moments où tu n'as ni le temps ni l'énergie de bien formuler les choses toi-même.</p>
+      </div>
+      <div class="stat-row">
+        <div>
+          <div class="stat-num gradient-text">15</div>
+          <div class="stat-label">Tons disponibles</div>
+        </div>
+        <div>
+          <div class="stat-num gradient-text">2</div>
+          <div class="stat-label">Variantes à chaque fois</div>
+        </div>
+        <div>
+          <div class="stat-num gradient-text">10s</div>
+          <div class="stat-label">Pour obtenir ta réponse</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="steps-section">
+    <div class="section-head">
+      <h2>Trois étapes, zéro prise de tête.</h2>
+      <p>Pas de compte compliqué, pas de configuration. Tu écris, tu choisis, tu envoies.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card"><div class="step-num">1</div><h3>Décris la situation</h3><p>Colle ton brouillon ou explique en deux phrases ce qui se passe.</p></div>
+      <div class="step-card"><div class="step-num">2</div><h3>Choisis ton ton</h3><p>Calme, drôle, direct ou ferme — à toi de voir ce qui correspond au moment.</p></div>
+      <div class="step-card"><div class="step-num">3</div><h3>Copie et envoie</h3><p>Deux propositions prêtes à coller directement dans ta conversation.</p></div>
+    </div>
+  </section>
+
+  <section class="quote-section bg-soft">
+    <blockquote>"Je passais 20 minutes à réécrire un seul message. Maintenant j'ai ma réponse en dix secondes, et elle sonne plus juste que ce que j'aurais écrit seul."</blockquote>
+    <div class="quote-attr">Un utilisateur, sur une conversation de travail tendue</div>
+  </section>
+
+  <div class="cta-banner">
+    <h2>Prêt à ne plus jamais chercher tes mots ?</h2>
+    <button class="btn-gradient" onclick="goToScreen(1)">Écrire mon premier message</button>
+  </div>
+
+  <footer>© Texte-moi ça — Un outil pour dire les choses, mieux.</footer>
+</div>
+
+<!-- ================= APP SHELL ================= -->
+<div class="app-shell" style="display:none;" id="app-shell">
+  <div class="app-nav">
+    <div class="logo-mark" onclick="goToScreen(0)">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V14C20 15.1046 19.1046 16 18 16H10L6 19.5V16H6C4.89543 16 4 15.1046 4 14V6Z" fill="white"/>
+          <circle cx="8.5" cy="10" r="1.15" fill="#7A5CFA"/>
+          <circle cx="12" cy="10" r="1.15" fill="#7A5CFA"/>
+          <circle cx="15.5" cy="10" r="1.15" fill="#7A5CFA"/>
+        </svg>
+      </div>
+      <span class="logo-text">Texte-moi <span class="gradient-text">ça</span></span>
+    </div>
+    <div class="phase-dots">
+      <span id="dot-1" class="active"></span>
+      <span id="dot-2"></span>
+      <span id="dot-3"></span>
+    </div>
+  </div>
+
+  <!-- ONBOARDING -->
+  <div class="screen" id="screen-onboarding">
+    <div class="app-body"><div class="container">
+      <div id="ob-steps"></div>
+      <div class="loader-wrap" id="ob-loader" style="display:none;">
+        <div class="loader-ring"></div>
+        <div><div class="loader-line" id="ob-loader-text">On analyse ta situation...</div></div>
+        <div class="progress-track"><div class="progress-fill" id="ob-progress"></div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- OUTIL -->
+  <div class="screen" id="screen-tool">
+    <div class="app-body"><div class="container-wide">
+      <div class="app-eyebrow">Ton assistant</div>
+      <h1 class="app-title">Colle ton message,<br>on s'occupe du reste.</h1>
+      <p class="app-sub">Décris la situation ou colle ton brouillon. On te propose deux versions prêtes à envoyer, dans le ton que tu choisis.</p>
+
+      <div class="tool-layout">
+        <div>
+          <label class="field-label">La situation ou le brouillon</label>
+          <textarea id="situation" placeholder="Ex : Mon coloc ne fait jamais la vaisselle et je dois lui en reparler pour la 3e fois..."></textarea>
+          <button class="btn-gradient full" id="generate-btn">Générer ma réponse</button>
+          <div class="quota-label" id="quota-info"></div>
+          <div id="tool-error"></div>
+          <div class="results" id="results"></div>
+        </div>
+
+        <div class="side-panel">
+          <label class="field-label">Choisis le ton</label>
+          <div class="tone-chips" id="tone-chips"></div>
+          <div class="selected-tone">Ton sélectionné : <span id="tone-label">Direct</span></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- PAYWALL -->
+  <div class="screen" id="screen-paywall">
+    <div class="app-body"><div class="container">
+      <div class="badge-social"><span class="stars">★★★★★</span><span>Rejoint par 2 400+ personnes</span></div>
+      <h1 class="app-title">Débloque tes réponses illimitées</h1>
+      <p class="app-sub">Plus jamais bloqué devant un message important. Variantes illimitées, dans tous les tons, à volonté.</p>
+      <div class="countdown" id="countdown">Offre de lancement — expire dans 09:58</div>
+
+      <div class="plans">
+        <div class="plan" data-plan="month" id="plan-week">
+          <div class="plan-row"><div class="radio"></div><div><div class="plan-name">Mensuel</div><div class="plan-sub">Sans engagement</div></div></div>
+          <div class="plan-price" id="price-month">6,99€<small>/mois</small></div>
+        </div>
+        <div class="plan best" data-plan="year" id="plan-year">
+          <div class="ribbon" id="ribbon-year">MEILLEURE OFFRE · -43%</div>
+          <div class="plan-row"><div class="radio"></div><div><div class="plan-name">Annuel</div><div class="plan-sub" id="sub-year">Facturé 47,88€/an</div></div></div>
+          <div class="plan-price" id="price-year">3,99€<small>/mois</small></div>
+        </div>
+      </div>
+
+      <div class="cta-wrap">
+        <button class="btn-gradient full" id="unlock-btn">Commencer mon essai gratuit de 7 jours</button>
+        <p class="fine-print">Carte bancaire requise pour démarrer l'essai. Facturé automatiquement selon l'offre choisie ci-dessus à la fin des 7 jours, sauf annulation. Résiliable à tout moment, en 2 clics.</p>
+        <div class="skip-link" id="skip-link">Continuer avec 1 réponse par jour</div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="dev-nav">
+  <button onclick="goToScreen(0)">Landing</button>
+  <button onclick="goToScreen(1)">① Onboarding</button>
+  <button onclick="goToScreen(2)">② Outil</button>
+  <button onclick="goToScreen(3)">③ Paywall</button>
+</div>
+
+<script>
+const screens = ['screen-landing','screen-onboarding','screen-tool','screen-paywall'];
+function scrollToSteps(){
+  goToScreen(0);
+  setTimeout(()=>{
+    document.getElementById('steps-section').scrollIntoView({behavior:'smooth', block:'start'});
+  }, 50);
+}
+function goToScreen(i){
+  screens.forEach((id,idx)=>{ document.getElementById(id).classList.toggle('active', idx===i); });
+  document.getElementById('app-shell').style.display = (i===0) ? 'none' : 'block';
+  if(i>0){
+    ['dot-1','dot-2','dot-3'].forEach((id,idx)=> document.getElementById(id).classList.toggle('active', idx===i-1));
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+const obQuestions = [
+  { q: "Quel type de message te bloque le plus ?", options: ["Travail / boss", "Couple", "Famille & amis", "Autre situation"] },
+  { q: "Qu'est-ce qui te stresse le plus avant d'envoyer un message compliqué ?", options: ["Passer pour trop agressif", "Ne pas être pris au sérieux", "Perdre un temps fou à formuler", "Envoyer un truc que je regrette"] },
+  { q: "À quelle fréquence ça t'arrive ?", options: ["Presque tous les jours", "Plusieurs fois par semaine", "De temps en temps"] }
+];
+let obIndex = 0;
+const obStepsEl = document.getElementById('ob-steps');
+function renderObStep(){
+  if(obIndex >= obQuestions.length){ runObLoader(); return; }
+  const step = obQuestions[obIndex];
+  obStepsEl.innerHTML = `
+    <div class="step-counter">ÉTAPE ${obIndex+1} / ${obQuestions.length}</div>
+    <h1 class="app-title">${step.q}</h1>
+    <p class="app-sub">Ça nous aide à calibrer le ton de tes futures réponses.</p>
+    <div class="option-list">${step.options.map(o => `<div class="option" onclick="selectObOption(this)"><span>${o}</span><span class="arrow">→</span></div>`).join('')}</div>
+  `;
+}
+function selectObOption(el){
+  document.querySelectorAll('#ob-steps .option').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  setTimeout(()=>{ obIndex++; renderObStep(); }, 280);
+}
+function runObLoader(){
+  obStepsEl.innerHTML = '';
+  document.getElementById('ob-loader').style.display = 'flex';
+  const lines = ["On analyse ta situation...", "On calibre les tons disponibles...", "On prépare ton assistant personnel..."];
+  const lineEl = document.getElementById('ob-loader-text');
+  let li = 0; lineEl.textContent = lines[0];
+  const lineInterval = setInterval(()=>{ li++; if(li < lines.length) lineEl.textContent = lines[li]; }, 750);
+  requestAnimationFrame(()=>{ document.getElementById('ob-progress').style.width = '100%'; });
+  setTimeout(()=>{ clearInterval(lineInterval); goToScreen(2); }, 2300);
+}
+renderObStep();
+
+const TONES = [
+  { name:"Calme", color:"#4FB8E8", example:"On peut en reparler calmement ce soir ?" },
+  { name:"Doux", color:"#6FD1E0", example:"Je voulais juste te dire, sans pression…" },
+  { name:"Direct", color:"#7A5CFA", example:"Il faut qu'on parle du loyer, maintenant." },
+  { name:"Ferme", color:"#FF6F5E", example:"Je ne reviendrai pas là-dessus." },
+  { name:"Drôle", color:"#FFB648", example:"Alerte : ton assiette a disparu, suspect toi 👀" },
+  { name:"Ironique", color:"#FF8F3D", example:"Ah oui, 'juste 5 minutes'… comme d'hab." },
+  { name:"Sincère", color:"#5C8CFA", example:"Honnêtement, ça m'a blessé quand tu as dit ça." },
+  { name:"Chaleureux", color:"#FF8FAE", example:"Je pense fort à toi, prends soin de toi 💛" },
+  { name:"Diplomate", color:"#8F6FE8", example:"Je comprends ton point de vue, et voici le mien…" },
+  { name:"Cash", color:"#E85C5C", example:"Non. Et ce n'est pas négociable." },
+  { name:"Rassurant", color:"#4FD1B0", example:"Tout va bien se passer, on gère ensemble." },
+  { name:"Taquin", color:"#FF6FA1", example:"Encore en retard toi ? Sans blague 😏" },
+  { name:"Professionnel", color:"#5C6C9E", example:"Merci de bien vouloir revenir vers moi avant vendredi." },
+  { name:"Romantique", color:"#FF6FCB", example:"Depuis que je t'ai rencontré, tout est différent." },
+  { name:"Conciliant", color:"#B6A6FF", example:"On peut trouver un compromis qui va à nous deux." }
+];
+
+function renderToneCloud(){
+  const wrap = document.getElementById('tone-track');
+  if(!wrap) return;
+  const cardHtml = (t, i) => {
+    const rot = (i % 2 === 0) ? (4 + (i % 3)) : -(4 + (i % 3));
+    return `
+      <div class="tone-showcase-card" style="--rot:${rot}deg;" onclick="goToScreen(1)">
+        <div class="tsc-top"><span class="tsc-dot" style="background:${t.color}"></span><span class="tsc-name">${t.name}</span></div>
+        <div class="tsc-bubble" style="background:${t.color}22; border-color:${t.color}55;">${t.example}</div>
+      </div>`;
+  };
+  const list = TONES.map(cardHtml).join('') + TONES.map(cardHtml).join('');
+  wrap.innerHTML = list;
+}
+renderToneCloud();
+
+function renderToneChips(){
+  const wrap = document.getElementById('tone-chips');
+  if(!wrap) return;
+  wrap.innerHTML = TONES.map((t,i) => `
+    <button type="button" class="tone-chip${i===2 ? ' active' : ''}" style="--tc:${t.color}" data-tone="${t.name}" onclick="selectTone(this)">
+      <span class="dot"></span>${t.name}
+    </button>
+  `).join('');
+}
+function selectTone(el){
+  document.querySelectorAll('.tone-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  const label = document.getElementById('tone-label');
+  label.textContent = el.getAttribute('data-tone');
+  label.style.color = el.style.getPropertyValue('--tc');
+}
+renderToneChips();
+
+let hasGeneratedOnce = false;
+
+/* ---------------------------------------------------------
+   QUOTA — 100 générations / mois / utilisateur (voir pricing)
+--------------------------------------------------------- */
+const QUOTA_KEY = 'tmc_usage';
+const MONTHLY_LIMIT = 100;
+
+function getUsage(){
+  const now = new Date();
+  const monthKey = `${now.getFullYear()}-${now.getMonth()+1}`;
+  let usage = null;
+  try{ usage = JSON.parse(localStorage.getItem(QUOTA_KEY)); }catch(e){}
+  if(!usage || usage.month !== monthKey){
+    usage = { month: monthKey, count: 0 };
+    localStorage.setItem(QUOTA_KEY, JSON.stringify(usage));
+  }
+  return usage;
+}
+function incrementUsage(){
+  const usage = getUsage();
+  usage.count++;
+  localStorage.setItem(QUOTA_KEY, JSON.stringify(usage));
+  return usage;
+}
+function renderQuota(){
+  const usage = getUsage();
+  const remaining = Math.max(0, MONTHLY_LIMIT - usage.count);
+  const el = document.getElementById('quota-info');
+  if(el) el.textContent = `${remaining} message${remaining>1?'s':''} restant${remaining>1?'s':''} ce mois-ci`;
+  return remaining;
+}
+renderQuota();
+
+document.getElementById('generate-btn').addEventListener('click', async ()=>{
+  const situation = document.getElementById('situation').value.trim();
+  const errorBox = document.getElementById('tool-error');
+  const resultsBox = document.getElementById('results');
+  const btn = document.getElementById('generate-btn');
+  const tone = document.querySelector('.tone-chip.active').getAttribute('data-tone');
+  errorBox.innerHTML = ''; resultsBox.innerHTML = '';
+
+  if(!situation){ errorBox.innerHTML = `<div class="error-box">Décris ta situation ou colle ton brouillon de message avant de générer.</div>`; return; }
+
+  const remaining = renderQuota();
+  if(remaining <= 0){
+    errorBox.innerHTML = `<div class="error-box">Tu as atteint la limite de ${MONTHLY_LIMIT} messages ce mois-ci. Passe à l'offre supérieure pour continuer sans limite.</div>`;
+    setTimeout(()=>{ goToScreen(3); }, 1200);
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Génération en cours...';
+  try{
+    // Appel à notre fonction serverless (api/generate.js), qui garde la clé Anthropic
+    // secrète côté serveur — voir /api/generate.js pour le déploiement sur Vercel.
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ situation, tone })
+    });
+
+    if(!response.ok){
+      const errData = await response.json().catch(()=>({}));
+      throw new Error(errData.error || "Erreur de génération.");
+    }
+
+    const data = await response.json();
+    resultsBox.innerHTML = data.variants.map((v, i) => `
+      <div class="bubble">
+        <div class="variant-tag">Variante ${i+1} · ${tone}</div>
+        <div style="margin-top:6px;">${v}</div>
+        <div class="bubble-actions"><button class="copy-btn" onclick="copyVariant(this)" data-text="${v.replace(/"/g,'&quot;')}">Copier le message</button></div>
+      </div>
+    `).join('');
+
+    incrementUsage();
+    renderQuota();
+
+    if(!hasGeneratedOnce){ hasGeneratedOnce = true; setTimeout(()=>{ goToScreen(3); }, 1400); }
+  }catch(err){
+    errorBox.innerHTML = `<div class="error-box">Un souci est survenu pendant la génération. Réessaie dans un instant.</div>`;
+  }finally{ btn.disabled = false; btn.textContent = 'Générer ma réponse'; }
+});
+function copyVariant(el){ navigator.clipboard.writeText(el.getAttribute('data-text')).then(()=>{ showToast('Message copié ✓'); }); }
+
+document.querySelectorAll('.plan').forEach(p=>{ p.addEventListener('click', ()=>{ document.querySelectorAll('.plan').forEach(x=>x.classList.remove('best')); p.classList.add('best'); }); });
+document.getElementById('unlock-btn').addEventListener('click', ()=>{ showToast('Démo — paiement non implémenté ici'); });
+document.getElementById('skip-link').addEventListener('click', ()=>{ showToast("Retour à l'outil, en version limitée"); goToScreen(2); });
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* Compte à rebours "evergreen" : fixé une seule fois par visiteur (localStorage),
+   ne se réinitialise plus au rechargement — reste honnête tout en gardant l'effet d'urgence.
+   OPTION A : une fois expiré, le tarif de lancement disparaît vraiment et passe au tarif normal. */
+const COUNTDOWN_KEY = 'tmc_offer_expires_at';
+const COUNTDOWN_DURATION_MS = 10 * 60 * 1000; // 10 minutes depuis la première visite
+
+const LAUNCH_PRICING = { month: "6,99€", year: "3,99€", yearSub: "Facturé 47,88€/an", ribbon: "MEILLEURE OFFRE · -43%" };
+const NORMAL_PRICING = { month: "8,99€", year: "5,99€", yearSub: "Facturé 71,88€/an", ribbon: "TARIF STANDARD" };
+
+function getOrCreateExpiry(){
+  let expiresAt = localStorage.getItem(COUNTDOWN_KEY);
+  if(!expiresAt){
+    expiresAt = Date.now() + COUNTDOWN_DURATION_MS;
+    localStorage.setItem(COUNTDOWN_KEY, expiresAt);
+  }
+  return parseInt(expiresAt, 10);
+}
+
+const expiryTimestamp = getOrCreateExpiry();
+let pricingApplied = null; // 'launch' | 'normal', pour n'appliquer le changement qu'une seule fois
+
+function applyPricing(mode){
+  if(pricingApplied === mode) return;
+  pricingApplied = mode;
+  const p = (mode === 'launch') ? LAUNCH_PRICING : NORMAL_PRICING;
+  document.getElementById('price-month').innerHTML = `${p.month}<small>/mois</small>`;
+  document.getElementById('price-year').innerHTML = `${p.year}<small>/mois</small>`;
+  document.getElementById('sub-year').textContent = p.yearSub;
+  const ribbon = document.getElementById('ribbon-year');
+  if(ribbon) ribbon.textContent = p.ribbon;
+}
+
+function renderCountdown(){
+  const el = document.getElementById('countdown');
+  const remainingMs = expiryTimestamp - Date.now();
+
+  if(remainingMs <= 0){
+    applyPricing('normal');
+    if(el) el.textContent = `Offre de lancement expirée — tarif standard`;
+    return;
+  }
+
+  applyPricing('launch');
+  if(el){
+    const totalSeconds = Math.floor(remainingMs / 1000);
+    const m = String(Math.floor(totalSeconds/60)).padStart(2,'0');
+    const s = String(totalSeconds%60).padStart(2,'0');
+    el.textContent = `Offre de lancement — expire dans ${m}:${s}`;
+  }
+}
+renderCountdown();
+setInterval(renderCountdown, 1000);
+</script>
+</body>
+</html>
