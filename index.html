@@ -247,6 +247,11 @@
   .loader-ring{ width:44px; height:44px; border-radius:50%; border:3px solid var(--border); border-top-color: var(--c-violet); animation: spin .9s linear infinite; }
   @keyframes spin{ to{ transform: rotate(360deg); } }
   .loader-line{ font-family: var(--font-mono); font-size:13px; color: var(--ink-soft); min-height:16px; }
+  .loader-checklist{ display:flex; flex-direction:column; gap:12px; }
+  .loader-step{ display:flex; align-items:center; gap:10px; font-family: var(--font-mono); font-size:13px; color: var(--ink-faint); transition: color .3s ease; }
+  .loader-step .lstep-mark{ width:16px; text-align:center; font-size:13px; color: var(--ink-faint); transition: color .3s ease, transform .3s ease; }
+  .loader-step.done{ color: var(--ink); }
+  .loader-step.done .lstep-mark{ color: var(--c-violet); transform: scale(1.15); }
   .progress-track{ width:220px; height:4px; background: var(--border); border-radius:4px; overflow:hidden; }
   .progress-fill{ height:100%; width:0%; background: var(--grad); border-radius:4px; transition: width 2.2s cubic-bezier(.2,.7,.3,1); }
 
@@ -273,6 +278,17 @@
   .selected-tone{ font-family: var(--font-display); font-weight:700; font-size:16px; color: var(--ink); margin-top:16px; }
 
   .results{ display:flex; flex-direction:column; gap:14px; margin-top:26px; }
+  .results-ready-wrap{ position:relative; display:flex; flex-direction:column; gap:14px; margin-top:26px; }
+  .bubble.blurred{ filter: blur(7px); user-select:none; pointer-events:none; }
+  .reveal-overlay{
+    position:absolute; inset:-14px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:10px; background: rgba(255,255,255,0.74); backdrop-filter: blur(3px);
+    border-radius:22px; padding:26px 20px; border:1px solid var(--border);
+  }
+  .reveal-overlay .reveal-icon{ font-size:26px; }
+  .reveal-overlay h3{ font-family: var(--font-display); font-weight:800; font-size:18px; color: var(--ink); }
+  .reveal-overlay p{ font-size:13px; color: var(--ink-soft); max-width:260px; line-height:1.5; margin-bottom:6px; }
+  .reveal-overlay .btn-gradient{ width:auto; padding:13px 26px; }
   .bubble{ background:#fff; border:1px solid var(--border); border-radius:18px 18px 18px 4px; padding:16px 18px; font-size:14.5px; line-height:1.55; box-shadow: 0 14px 30px -24px var(--shadow); }
   .bubble-actions{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border); }
   .copy-btn{ background:none; border:none; color: var(--c-violet); font-size:13px; font-weight:700; cursor:pointer; font-family: var(--font-body); }
@@ -304,7 +320,22 @@
 
   .toast{ position:fixed; bottom:70px; left:50%; transform:translateX(-50%) translateY(10px); background: var(--bg-dark); color:#fff; font-size:13px; padding:12px 20px; border-radius:100px; opacity:0; transition:all .25s ease; pointer-events:none; z-index:300; white-space:nowrap; }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ---------- AUTH ---------- */
+  .nav-login-link{ font-weight:600; }
+  .app-nav-login{ color: var(--ink-soft); font-size:13.5px; font-weight:600; cursor:pointer; }
+  .app-nav-login:hover{ color: var(--c-violet); }
+  .auth-tabs{ display:inline-flex; gap:6px; background: var(--bg-soft); border-radius:100px; padding:5px; margin-bottom:32px; }
+  .auth-tab{ border:none; background:none; padding:10px 20px; border-radius:100px; font-weight:700; font-size:13.5px; color: var(--ink-soft); cursor:pointer; font-family: var(--font-body); transition: all .15s ease; }
+  .auth-tab.active{ background:#fff; color: var(--ink); box-shadow: 0 8px 18px -10px var(--shadow); }
+  .auth-form{ max-width:420px; }
+  .auth-input{
+    width:100%; background:#fff; border:1px solid var(--border); border-radius:14px; padding:14px 16px;
+    font-size:14.5px; font-family: var(--font-body); color: var(--ink); box-shadow: 0 10px 24px -20px var(--shadow);
+  }
+  .auth-input:focus{ outline:none; border-color: var(--c-violet); }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -325,6 +356,7 @@
     <div class="nav-links">
       <a onclick="scrollToSteps()">Comment ça marche</a>
       <a onclick="goToScreen(3)">Tarifs</a>
+      <a class="nav-login-link" onclick="goToAuth()">Se connecter</a>
     </div>
     <button class="nav-cta" onclick="goToScreen(1)">Essayer gratuitement</button>
   </nav>
@@ -435,6 +467,7 @@
       <span id="dot-2"></span>
       <span id="dot-3"></span>
     </div>
+    <a class="nav-login-link app-nav-login" onclick="goToAuth()">Se connecter</a>
   </div>
 
   <!-- ONBOARDING -->
@@ -469,7 +502,8 @@
         <div class="side-panel">
           <label class="field-label">Choisis le ton</label>
           <div class="tone-chips" id="tone-chips"></div>
-          <div class="selected-tone">Ton sélectionné : <span id="tone-label">Direct</span></div>
+          <div class="selected-tone">Ton sélectionné : <span id="tone-label" style="color:var(--ink-faint);">Aucun pour l'instant</span></div>
+          <div class="error-box" id="tone-error" style="display:none;"></div>
         </div>
       </div>
     </div></div>
@@ -504,6 +538,48 @@
   </div>
 </div>
 
+<!-- ================= AUTH (connexion / inscription) ================= -->
+<div class="screen" id="screen-auth">
+  <nav class="nav">
+    <div class="logo-mark" onclick="closeAuth()">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V14C20 15.1046 19.1046 16 18 16H10L6 19.5V16H6C4.89543 16 4 15.1046 4 14V6Z" fill="white"/>
+          <circle cx="8.5" cy="10" r="1.15" fill="#7A5CFA"/>
+          <circle cx="12" cy="10" r="1.15" fill="#7A5CFA"/>
+          <circle cx="15.5" cy="10" r="1.15" fill="#7A5CFA"/>
+        </svg>
+      </div>
+      <span class="logo-text">Texte-moi <span class="gradient-text">ça</span></span>
+    </div>
+    <button class="btn-text" onclick="closeAuth()">← Retour</button>
+  </nav>
+
+  <div class="app-body"><div class="container">
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Se connecter</button>
+      <button type="button" class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Créer un compte</button>
+    </div>
+
+    <h1 class="app-title" id="auth-title">Content de te revoir.</h1>
+    <p class="app-sub" id="auth-sub">Connecte-toi pour retrouver tes messages et ton historique.</p>
+
+    <form id="auth-form" class="auth-form">
+      <label class="field-label">Adresse email</label>
+      <input type="email" id="auth-email" class="auth-input" placeholder="toi@exemple.com" required>
+
+      <label class="field-label" style="margin-top:16px;">Mot de passe</label>
+      <input type="password" id="auth-password" class="auth-input" placeholder="••••••••" required minlength="6">
+
+      <div id="auth-error"></div>
+
+      <button type="submit" class="btn-gradient full" id="auth-submit-btn" style="margin-top:22px;">Se connecter</button>
+    </form>
+
+    <p class="fine-print" style="text-align:center; margin-top:20px;">En continuant, tu acceptes nos conditions d'utilisation.</p>
+  </div></div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div class="dev-nav">
   <button onclick="goToScreen(0)">Landing</button>
@@ -523,16 +599,109 @@ function scrollToSteps(){
 function goToScreen(i){
   screens.forEach((id,idx)=>{ document.getElementById(id).classList.toggle('active', idx===i); });
   document.getElementById('app-shell').style.display = (i===0) ? 'none' : 'block';
+  document.getElementById('screen-auth').classList.remove('active');
   if(i>0){
     ['dot-1','dot-2','dot-3'].forEach((id,idx)=> document.getElementById(id).classList.toggle('active', idx===i-1));
   }
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
+/* ---------------------------------------------------------
+   AUTHENTIFICATION — Supabase (email + mot de passe)
+   Étapes de configuration : voir README.md
+--------------------------------------------------------- */
+const SUPABASE_URL = "https://nvbyjmadzlvsndscsvpv.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_QrB27SIE1N6_ToFzzU9PGA_YAGeAvJ7";
+
+let supabaseClient = null;
+try{
+  if(window.supabase && !SUPABASE_URL.includes("TON-PROJET")){
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+}catch(e){ console.warn("Supabase non configuré :", e); }
+
+let authMode = 'login';
+function goToAuth(){
+  document.getElementById('screen-landing').classList.remove('active');
+  document.getElementById('app-shell').style.display = 'none';
+  document.getElementById('screen-auth').classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function closeAuth(){
+  document.getElementById('screen-auth').classList.remove('active');
+  goToScreen(0);
+}
+function switchAuthTab(mode){
+  authMode = mode;
+  document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+  document.getElementById('tab-signup').classList.toggle('active', mode === 'signup');
+  document.getElementById('auth-title').textContent = mode === 'login' ? 'Content de te revoir.' : 'Crée ton compte.';
+  document.getElementById('auth-sub').textContent = mode === 'login'
+    ? 'Connecte-toi pour retrouver tes messages et ton historique.'
+    : 'Quelques secondes suffisent — juste ton email et un mot de passe.';
+  document.getElementById('auth-submit-btn').textContent = mode === 'login' ? 'Se connecter' : 'Créer mon compte';
+  document.getElementById('auth-error').innerHTML = '';
+}
+
+document.getElementById('auth-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errorBox = document.getElementById('auth-error');
+  const btn = document.getElementById('auth-submit-btn');
+  errorBox.innerHTML = '';
+
+  if(!supabaseClient){
+    errorBox.innerHTML = `<div class="error-box">L'authentification n'est pas encore configurée. Voir README.md pour connecter Supabase.</div>`;
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Un instant...';
+  try{
+    const result = (authMode === 'signup')
+      ? await supabaseClient.auth.signUp({ email, password })
+      : await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if(result.error) throw result.error;
+
+    showToast(authMode === 'signup' ? 'Compte créé ✓ Vérifie tes emails si besoin.' : 'Connecté ✓');
+    await updateAuthUI();
+    closeAuth();
+  }catch(err){
+    errorBox.innerHTML = `<div class="error-box">${err.message || "Une erreur est survenue."}</div>`;
+  }finally{
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Se connecter' : 'Créer mon compte';
+  }
+});
+
+async function updateAuthUI(){
+  if(!supabaseClient) return;
+  const { data } = await supabaseClient.auth.getSession();
+  const session = data ? data.session : null;
+  document.querySelectorAll('.nav-login-link').forEach(el=>{
+    if(session){
+      el.textContent = session.user.email.split('@')[0];
+      el.onclick = async ()=>{
+        await supabaseClient.auth.signOut();
+        showToast('Déconnecté');
+        updateAuthUI();
+      };
+    } else {
+      el.textContent = 'Se connecter';
+      el.onclick = goToAuth;
+    }
+  });
+}
+updateAuthUI();
+
 const obQuestions = [
   { q: "Quel type de message te bloque le plus ?", options: ["Travail / boss", "Couple", "Famille & amis", "Autre situation"] },
   { q: "Qu'est-ce qui te stresse le plus avant d'envoyer un message compliqué ?", options: ["Passer pour trop agressif", "Ne pas être pris au sérieux", "Perdre un temps fou à formuler", "Envoyer un truc que je regrette"] },
-  { q: "À quelle fréquence ça t'arrive ?", options: ["Presque tous les jours", "Plusieurs fois par semaine", "De temps en temps"] }
+  { q: "À quelle fréquence ça t'arrive ?", options: ["Presque tous les jours", "Plusieurs fois par semaine", "De temps en temps"] },
+  { q: "Comment tu t'y prends aujourd'hui, sans aide ?", options: ["Je tourne autour du pot", "Je laisse traîner sans répondre", "Je demande conseil à un(e) ami(e)", "Je n'envoie tout simplement pas"] },
+  { q: "Sur quelle appli tu écris le plus souvent ces messages ?", options: ["SMS / iMessage", "WhatsApp", "Instagram", "Email"] },
+  { q: "Qu'est-ce qui t'aiderait le plus, honnêtement ?", options: ["Trouver le bon ton du premier coup", "Ne plus perdre de temps à réfléchir", "Avoir un exemple clair à adapter", "Gagner en confiance dans mes échanges"] }
 ];
 let obIndex = 0;
 const obStepsEl = document.getElementById('ob-steps');
@@ -553,13 +722,36 @@ function selectObOption(el){
 }
 function runObLoader(){
   obStepsEl.innerHTML = '';
-  document.getElementById('ob-loader').style.display = 'flex';
-  const lines = ["On analyse ta situation...", "On calibre les tons disponibles...", "On prépare ton assistant personnel..."];
-  const lineEl = document.getElementById('ob-loader-text');
-  let li = 0; lineEl.textContent = lines[0];
-  const lineInterval = setInterval(()=>{ li++; if(li < lines.length) lineEl.textContent = lines[li]; }, 750);
+  const loaderWrap = document.getElementById('ob-loader');
+  loaderWrap.style.display = 'flex';
+
+  const steps = [
+    "Analyse de tes réponses…",
+    "Identification de ton profil de communication…",
+    "Calibration des 15 tons disponibles…",
+    "Ajustement des tournures au français courant…",
+    "Vérification de la justesse émotionnelle…",
+    "Préparation de ton assistant personnel…"
+  ];
+
+  loaderWrap.innerHTML = `
+    <div class="loader-ring"></div>
+    <div class="loader-checklist" id="loader-checklist">
+      ${steps.map((s,i)=>`<div class="loader-step" id="lstep-${i}"><span class="lstep-mark">○</span><span>${s}</span></div>`).join('')}
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="ob-progress"></div></div>
+  `;
+
   requestAnimationFrame(()=>{ document.getElementById('ob-progress').style.width = '100%'; });
-  setTimeout(()=>{ clearInterval(lineInterval); goToScreen(2); }, 2300);
+
+  steps.forEach((s, i)=>{
+    setTimeout(()=>{
+      const el = document.getElementById('lstep-'+i);
+      if(el){ el.classList.add('done'); el.querySelector('.lstep-mark').textContent = '✓'; }
+    }, 550 * (i+1));
+  });
+
+  setTimeout(()=>{ goToScreen(2); }, 550 * steps.length + 700);
 }
 renderObStep();
 
@@ -600,8 +792,8 @@ renderToneCloud();
 function renderToneChips(){
   const wrap = document.getElementById('tone-chips');
   if(!wrap) return;
-  wrap.innerHTML = TONES.map((t,i) => `
-    <button type="button" class="tone-chip${i===2 ? ' active' : ''}" style="--tc:${t.color}" data-tone="${t.name}" onclick="selectTone(this)">
+  wrap.innerHTML = TONES.map((t) => `
+    <button type="button" class="tone-chip" style="--tc:${t.color}" data-tone="${t.name}" onclick="selectTone(this)">
       <span class="dot"></span>${t.name}
     </button>
   `).join('');
@@ -612,10 +804,10 @@ function selectTone(el){
   const label = document.getElementById('tone-label');
   label.textContent = el.getAttribute('data-tone');
   label.style.color = el.style.getPropertyValue('--tc');
+  const te = document.getElementById('tone-error');
+  te.textContent = ''; te.style.display = 'none';
 }
 renderToneChips();
-
-let hasGeneratedOnce = false;
 
 /* ---------------------------------------------------------
    QUOTA — 100 générations / mois / utilisateur (voir pricing)
@@ -652,12 +844,23 @@ renderQuota();
 document.getElementById('generate-btn').addEventListener('click', async ()=>{
   const situation = document.getElementById('situation').value.trim();
   const errorBox = document.getElementById('tool-error');
+  const toneErrorBox = document.getElementById('tone-error');
   const resultsBox = document.getElementById('results');
   const btn = document.getElementById('generate-btn');
-  const tone = document.querySelector('.tone-chip.active').getAttribute('data-tone');
+  const activeToneEl = document.querySelector('.tone-chip.active');
+
   errorBox.innerHTML = ''; resultsBox.innerHTML = '';
+  toneErrorBox.style.display = 'none'; toneErrorBox.textContent = '';
 
   if(!situation){ errorBox.innerHTML = `<div class="error-box">Décris ta situation ou colle ton brouillon de message avant de générer.</div>`; return; }
+
+  if(!activeToneEl){
+    toneErrorBox.textContent = "Choisis d'abord un ton avant de générer ta réponse.";
+    toneErrorBox.style.display = 'block';
+    document.querySelector('.tone-chips').scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  const tone = activeToneEl.getAttribute('data-tone');
 
   const remaining = renderQuota();
   if(remaining <= 0){
@@ -682,18 +885,25 @@ document.getElementById('generate-btn').addEventListener('click', async ()=>{
     }
 
     const data = await response.json();
-    resultsBox.innerHTML = data.variants.map((v, i) => `
-      <div class="bubble">
-        <div class="variant-tag">Variante ${i+1} · ${tone}</div>
-        <div style="margin-top:6px;">${v}</div>
-        <div class="bubble-actions"><button class="copy-btn" onclick="copyVariant(this)" data-text="${v.replace(/"/g,'&quot;')}">Copier le message</button></div>
+    resultsBox.innerHTML = `
+      <div class="results-ready-wrap">
+        ${data.variants.map((v, i) => `
+          <div class="bubble blurred">
+            <div class="variant-tag">Variante ${i+1} · ${tone}</div>
+            <div style="margin-top:6px;">${v}</div>
+          </div>
+        `).join('')}
+        <div class="reveal-overlay">
+          <div class="reveal-icon">✨</div>
+          <h3>Tes 2 messages sont prêts !</h3>
+          <p>Débloque-les pour voir la version complète, les copier et les envoyer.</p>
+          <button class="btn-gradient" onclick="goToScreen(3)">Voir mes messages</button>
+        </div>
       </div>
-    `).join('');
+    `;
 
     incrementUsage();
     renderQuota();
-
-    if(!hasGeneratedOnce){ hasGeneratedOnce = true; setTimeout(()=>{ goToScreen(3); }, 1400); }
   }catch(err){
     errorBox.innerHTML = `<div class="error-box">Un souci est survenu pendant la génération. Réessaie dans un instant.</div>`;
   }finally{ btn.disabled = false; btn.textContent = 'Générer ma réponse'; }
