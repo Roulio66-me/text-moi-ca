@@ -348,6 +348,45 @@
     box-shadow: 0 10px 24px -20px var(--shadow); transition: all .15s ease;
   }
   .google-btn:hover{ border-color: var(--ink-faint); transform: translateY(-1px); }
+
+  /* ---------- MON COMPTE ---------- */
+  .account-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; margin-top:34px; max-width:900px; }
+  @media (max-width: 860px){ .account-grid{ grid-template-columns:1fr; } }
+  .account-panel-title{ font-family: var(--font-display); font-weight:800; font-size:15px; margin-bottom:14px; }
+  .account-panel-text{ font-size:13px; color: var(--ink-soft); line-height:1.55; }
+  .account-badge{
+    display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:100px;
+    font-size:12.5px; font-weight:700; background: var(--bg-soft); color: var(--ink-soft); margin-bottom:10px;
+  }
+  .account-badge.premium{ background: var(--grad); color:#fff; }
+  .usage-bar-track{ width:100%; height:8px; border-radius:100px; background: var(--bg-soft); overflow:hidden; }
+  .usage-bar-fill{ height:100%; background: var(--grad); border-radius:100px; transition: width .4s ease; }
+  .btn-ghost-outline{
+    width:100%; background:#fff; border:1px solid var(--border); border-radius:100px; padding:12px 20px;
+    font-family: var(--font-body); font-weight:600; font-size:13.5px; color: var(--ink); cursor:pointer; transition: all .15s ease;
+  }
+  .btn-ghost-outline:hover{ border-color: var(--ink-faint); }
+
+  /* ---------- MODE PREMIUM (confort) ---------- */
+  #screen-tool.premium{ position:relative; overflow:hidden; }
+  #screen-tool.premium::before{
+    content:""; position:absolute; top:-160px; right:-120px; width:480px; height:480px;
+    background: var(--grad); filter: blur(140px); opacity:0.16; border-radius:50%; pointer-events:none; z-index:0;
+  }
+  #screen-tool.premium::after{
+    content:""; position:absolute; bottom:-180px; left:-140px; width:420px; height:420px;
+    background: var(--grad); filter: blur(150px); opacity:0.1; border-radius:50%; pointer-events:none; z-index:0;
+  }
+  #screen-tool.premium .app-body{ position:relative; z-index:1; }
+  #screen-tool.premium .side-panel{
+    box-shadow: 0 30px 60px -30px var(--shadow), 0 0 0 1px rgba(122,92,250,0.08);
+  }
+  #screen-tool.premium textarea{ box-shadow: 0 20px 40px -28px var(--shadow); }
+  .premium-chip{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 13px; border-radius:100px;
+    background: var(--grad); color:#fff; font-size:11.5px; font-weight:700; margin-left:10px;
+    vertical-align:middle;
+  }
   .auth-divider{
     display:flex; align-items:center; gap:14px; max-width:420px; margin:22px 0;
     color: var(--ink-faint); font-size:12.5px;
@@ -506,9 +545,9 @@
   <!-- OUTIL -->
   <div class="screen" id="screen-tool">
     <div class="app-body"><div class="container-wide">
-      <div class="app-eyebrow">Ton assistant</div>
-      <h1 class="app-title">Colle ton message,<br>on s'occupe du reste.</h1>
-      <p class="app-sub">Décris la situation ou colle ton brouillon. On te propose deux versions prêtes à envoyer, dans le ton que tu choisis.</p>
+      <div class="app-eyebrow" id="tool-eyebrow">Ton assistant</div>
+      <h1 class="app-title" id="tool-title">Colle ton message,<br>on s'occupe du reste.</h1>
+      <p class="app-sub" id="tool-sub">Décris la situation ou colle ton brouillon. On te propose deux versions prêtes à envoyer, dans le ton que tu choisis.</p>
 
       <div class="tool-layout">
         <div>
@@ -612,12 +651,59 @@
   </div></div>
 </div>
 
+<!-- ================= MON COMPTE ================= -->
+<div class="screen" id="screen-account">
+  <nav class="nav">
+    <div class="logo-mark" onclick="closeAccount()">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 6C4 4.89543 4.89543 4 6 4H18C19.1046 4 20 4.89543 20 6V14C20 15.1046 19.1046 16 18 16H10L6 19.5V16H6C4.89543 16 4 15.1046 4 14V6Z" fill="white"/>
+          <circle cx="8.5" cy="10" r="1.15" fill="#7A5CFA"/>
+          <circle cx="12" cy="10" r="1.15" fill="#7A5CFA"/>
+          <circle cx="15.5" cy="10" r="1.15" fill="#7A5CFA"/>
+        </svg>
+      </div>
+      <span class="logo-text">Texte-moi <span class="gradient-text">ça</span></span>
+    </div>
+    <button class="btn-text" onclick="closeAccount()">← Retour</button>
+  </nav>
+
+  <div class="app-body"><div class="container-wide">
+    <div class="app-eyebrow">Mon compte</div>
+    <h1 class="app-title" id="account-title">Bonjour</h1>
+    <p class="app-sub" id="account-email"></p>
+
+    <div class="account-grid">
+      <div class="side-panel">
+        <h3 class="account-panel-title">Abonnement</h3>
+        <div id="account-plan-badge" class="account-badge"></div>
+        <p class="account-panel-text" id="account-plan-detail"></p>
+        <button class="btn-gradient full" id="account-upgrade-btn" onclick="goToScreen(3)" style="margin-top:16px;">Voir les offres</button>
+      </div>
+
+      <div class="side-panel">
+        <h3 class="account-panel-title">Utilisation</h3>
+        <div class="usage-bar-track"><div class="usage-bar-fill" id="usage-bar-fill"></div></div>
+        <p class="account-panel-text" id="account-usage-text" style="margin-top:10px;"></p>
+      </div>
+
+      <div class="side-panel">
+        <h3 class="account-panel-title">Facturation</h3>
+        <p class="account-panel-text">Gère ton mode de paiement et retrouve tes factures.</p>
+        <button class="btn-ghost-outline" onclick="showToast('Portail de facturation bientôt disponible')" style="margin-top:16px;">Gérer mon abonnement</button>
+      </div>
+    </div>
+
+    <div class="skip-link" onclick="doSignOut()" style="margin-top:32px;">Se déconnecter</div>
+  </div></div>
+</div>
 <div class="toast" id="toast"></div>
 <div class="dev-nav">
   <button onclick="goToScreen(0)">Landing</button>
   <button onclick="goToScreen(1)">① Onboarding</button>
   <button onclick="goToScreen(2)">② Outil</button>
   <button onclick="goToScreen(3)">③ Paywall</button>
+  <button onclick="goToAccount()">👤 Mon compte</button>
 </div>
 
 <script>
@@ -635,7 +721,53 @@ function goToScreen(i){
   if(i>0){
     ['dot-1','dot-2','dot-3'].forEach((id,idx)=> document.getElementById(id).classList.toggle('active', idx===i-1));
   }
+  if(i === 2){ applyToolTierUI(); }
   window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------------------------------------------------------
+   Interface "confort" pour les abonnés premium : accueil personnalisé,
+   ambiance visuelle plus douce, badge premium — sans dupliquer l'écran.
+--------------------------------------------------------- */
+function firstNameOf(user){
+  const meta = user && user.user_metadata;
+  const full = meta && (meta.full_name || meta.name);
+  if(full) return full.split(' ')[0];
+  return user ? user.email.split('@')[0] : '';
+}
+function applyToolTierUI(){
+  const screenTool = document.getElementById('screen-tool');
+  const premium = isPremiumUser();
+  screenTool.classList.toggle('premium', premium);
+
+  const eyebrow = document.getElementById('tool-eyebrow');
+  const title = document.getElementById('tool-title');
+  const sub = document.getElementById('tool-sub');
+
+  if(premium){
+    eyebrow.innerHTML = `Ton assistant <span class="premium-chip">✨ Premium</span>`;
+    title.innerHTML = `Bon retour, ${firstNameOf(currentUser)}.`;
+    sub.textContent = "Sans limite, sans flou. Écris ta situation, on s'occupe du reste.";
+  } else {
+    eyebrow.textContent = 'Ton assistant';
+    title.innerHTML = `Colle ton message,<br>on s'occupe du reste.`;
+    sub.textContent = 'Décris la situation ou colle ton brouillon. On te propose deux versions prêtes à envoyer, dans le ton que tu choisis.';
+  }
+}
+
+/* ---------------------------------------------------------
+   Un abonné premium qui arrive sur le site (ou qui vient de se connecter)
+   est envoyé directement dans l'outil, sans repasser par la landing —
+   ça lui fait gagner du temps. On ne le fait qu'une fois par chargement
+   de page pour ne pas le "recoller" de force s'il navigue ensuite ailleurs.
+--------------------------------------------------------- */
+let initialRouteApplied = false;
+function maybeAutoEnterTool(){
+  if(initialRouteApplied) return;
+  if(isPremiumUser()){
+    initialRouteApplied = true;
+    goToScreen(2);
+  }
 }
 
 /* ---------------------------------------------------------
@@ -677,15 +809,70 @@ try{
 }catch(e){ console.warn("Supabase non configuré :", e); }
 
 let authMode = 'login';
-function goToAuth(){
-  document.getElementById('screen-landing').classList.remove('active');
-  document.getElementById('app-shell').style.display = 'none';
-  document.getElementById('screen-auth').classList.add('active');
-  window.scrollTo({top:0, behavior:'smooth'});
-}
 function closeAuth(){
   document.getElementById('screen-auth').classList.remove('active');
   goToScreen(0);
+}
+
+/* ---------------------------------------------------------
+   MON COMPTE — abonnement, utilisation, facturation
+--------------------------------------------------------- */
+function goToAccount(){
+  if(!currentUser){ goToAuth(); return; }
+  document.getElementById('screen-landing').classList.remove('active');
+  document.getElementById('app-shell').style.display = 'none';
+  document.getElementById('screen-auth').classList.remove('active');
+  renderAccountPage();
+  document.getElementById('screen-account').classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function closeAccount(){
+  document.getElementById('screen-account').classList.remove('active');
+  goToScreen(0);
+}
+async function doSignOut(){
+  await supabaseClient.auth.signOut();
+  showToast('Déconnecté');
+  closeAccount();
+}
+function renderAccountPage(){
+  if(!currentUser) return;
+  const name = (currentUser.user_metadata && (currentUser.user_metadata.full_name || currentUser.user_metadata.name))
+    || currentUser.email.split('@')[0];
+  document.getElementById('account-title').textContent = `Bonjour, ${name}`;
+  document.getElementById('account-email').textContent = currentUser.email;
+
+  const badge = document.getElementById('account-plan-badge');
+  const detail = document.getElementById('account-plan-detail');
+  const upgradeBtn = document.getElementById('account-upgrade-btn');
+
+  if(isPremiumUser()){
+    badge.textContent = '✨ Premium';
+    badge.classList.add('premium');
+    detail.textContent = "Tu as un accès complet, sans limite de générations ni flou sur les messages.";
+    upgradeBtn.style.display = 'none';
+  } else {
+    badge.textContent = 'Gratuit';
+    badge.classList.remove('premium');
+    detail.textContent = "Tu n'as pas encore d'abonnement actif. Passe au premium pour débloquer tes messages en clair, sans limite.";
+    upgradeBtn.style.display = 'block';
+  }
+
+  const usage = getUsage();
+  const used = isPremiumUser() ? 0 : usage.count;
+  const pct = isPremiumUser() ? 0 : Math.min(100, Math.round((usage.count / MONTHLY_LIMIT) * 100));
+  document.getElementById('usage-bar-fill').style.width = pct + '%';
+  document.getElementById('account-usage-text').textContent = isPremiumUser()
+    ? "Générations illimitées ce mois-ci."
+    : `${usage.count} / ${MONTHLY_LIMIT} générations utilisées ce mois-ci.`;
+}
+
+function goToAuth(){
+  document.getElementById('screen-landing').classList.remove('active');
+  document.getElementById('app-shell').style.display = 'none';
+  document.getElementById('screen-account').classList.remove('active');
+  document.getElementById('screen-auth').classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 function switchAuthTab(mode){
   authMode = mode;
@@ -774,10 +961,7 @@ function renderAuthState(session){
         ? `<img class="nav-avatar" src="${avatarUrl}" alt="Profil" referrerpolicy="no-referrer">`
         : `<div class="nav-avatar-fallback">${initial}</div>`;
 
-      el.onclick = async ()=>{
-        await supabaseClient.auth.signOut();
-        showToast('Déconnecté');
-      };
+      el.onclick = goToAccount;
     } else {
       el.textContent = 'Se connecter';
       el.onclick = goToAuth;
@@ -788,13 +972,18 @@ function renderAuthState(session){
 if(supabaseClient){
   supabaseClient.auth.onAuthStateChange((event, session)=>{
     renderAuthState(session);
+    if(document.getElementById('screen-tool').classList.contains('active')){ applyToolTierUI(); }
     // Nettoie les tokens Google laissés dans l'URL après redirection, pour que ce soit propre.
     if(event === 'SIGNED_IN' && (window.location.hash.includes('access_token') || window.location.search.includes('code='))){
       window.history.replaceState({}, document.title, window.location.pathname);
     }
+    if(event === 'SIGNED_IN'){ maybeAutoEnterTool(); }
   });
   // Rendu initial en cas de session déjà active (ex: retour sur le site après connexion précédente)
-  supabaseClient.auth.getSession().then(({ data })=>{ renderAuthState(data ? data.session : null); });
+  supabaseClient.auth.getSession().then(({ data })=>{
+    renderAuthState(data ? data.session : null);
+    maybeAutoEnterTool();
+  });
 } else {
   renderAuthState(null);
 }
@@ -973,23 +1162,20 @@ document.getElementById('generate-btn').addEventListener('click', async ()=>{
 
   btn.disabled = true; btn.textContent = 'Génération en cours...';
   try{
-    // Appel à notre fonction serverless (api/generate.js), qui garde la clé Anthropic
-    // secrète côté serveur — voir /api/generate.js pour le déploiement sur Vercel.
-    const response = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ situation, tone })
-    });
-
-    if(!response.ok){
-      const errData = await response.json().catch(()=>({}));
-      throw new Error(errData.error || "Erreur de génération.");
-    }
-
-    const data = await response.json();
-
     if(isPremiumUser()){
-      // Accès premium (temporaire, en attendant Stripe) : pas de flou, résultats visibles direct.
+      // Compte premium (accès anticipé, en attendant Stripe) : vrai appel IA, résultats visibles direct.
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ situation, tone })
+      });
+
+      if(!response.ok){
+        const errData = await response.json().catch(()=>({}));
+        throw new Error(errData.error || "Erreur de génération.");
+      }
+
+      const data = await response.json();
       resultsBox.innerHTML = data.variants.map((v, i) => `
         <div class="bubble">
           <div class="variant-tag">Variante ${i+1} · ${tone}</div>
@@ -997,13 +1183,18 @@ document.getElementById('generate-btn').addEventListener('click', async ()=>{
           <div class="bubble-actions"><button class="copy-btn" onclick="copyVariant(this)" data-text="${v.replace(/"/g,'&quot;')}">Copier le message</button></div>
         </div>
       `).join('');
+
     } else {
+      // Pas encore abonné : le résultat sera flouté et jamais lisible sans payer,
+      // donc inutile de consommer de vrais tokens IA. On simule juste le temps de génération.
+      await new Promise(resolve => setTimeout(resolve, 1400 + Math.random()*700));
+
       resultsBox.innerHTML = `
         <div class="results-ready-wrap">
-          ${data.variants.map((v, i) => `
+          ${[0,1].map(i => `
             <div class="bubble blurred">
               <div class="variant-tag">Variante ${i+1} · ${tone}</div>
-              <div style="margin-top:6px;">${v}</div>
+              <div style="margin-top:6px;">Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.</div>
             </div>
           `).join('')}
           <div class="reveal-overlay">
@@ -1025,7 +1216,14 @@ document.getElementById('generate-btn').addEventListener('click', async ()=>{
 function copyVariant(el){ navigator.clipboard.writeText(el.getAttribute('data-text')).then(()=>{ showToast('Message copié ✓'); }); }
 
 document.querySelectorAll('.plan').forEach(p=>{ p.addEventListener('click', ()=>{ document.querySelectorAll('.plan').forEach(x=>x.classList.remove('best')); p.classList.add('best'); }); });
-document.getElementById('unlock-btn').addEventListener('click', ()=>{ showToast('Démo — paiement non implémenté ici'); });
+document.getElementById('unlock-btn').addEventListener('click', ()=>{
+  if(!currentUser){
+    showToast('Connecte-toi d\'abord pour t\'abonner');
+    setTimeout(()=>{ goToAuth(); }, 900);
+    return;
+  }
+  showToast('Démo — paiement non implémenté ici');
+});
 document.getElementById('skip-link').addEventListener('click', ()=>{ showToast("Retour à l'outil, en version limitée"); goToScreen(2); });
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
 
