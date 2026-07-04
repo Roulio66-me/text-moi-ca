@@ -540,12 +540,12 @@
       <div class="plans">
         <div class="plan" data-plan="month" id="plan-week">
           <div class="plan-row"><div class="radio"></div><div><div class="plan-name">Mensuel</div><div class="plan-sub">Sans engagement</div></div></div>
-          <div class="plan-price" id="price-month">6,99€<small>/mois</small></div>
+          <div class="plan-price" id="price-month">4,99€<small>/mois</small></div>
         </div>
         <div class="plan best" data-plan="year" id="plan-year">
-          <div class="ribbon" id="ribbon-year">MEILLEURE OFFRE · -43%</div>
-          <div class="plan-row"><div class="radio"></div><div><div class="plan-name">Annuel</div><div class="plan-sub" id="sub-year">Facturé 47,88€/an</div></div></div>
-          <div class="plan-price" id="price-year">3,99€<small>/mois</small></div>
+          <div class="ribbon" id="ribbon-year">MEILLEURE OFFRE · -30%</div>
+          <div class="plan-row"><div class="radio"></div><div><div class="plan-name">Annuel</div><div class="plan-sub" id="sub-year">Facturé 41,88€/an</div></div></div>
+          <div class="plan-price" id="price-year">3,49€<small>/mois</small></div>
         </div>
       </div>
 
@@ -749,6 +749,17 @@ function signInWithGoogle(){
    s'exécuter avant que Supabase ait fini de traiter la redirection.
 --------------------------------------------------------- */
 let currentUser = null;
+
+/* ---------------------------------------------------------
+   ACCÈS PREMIUM TEMPORAIRE — en attendant que Stripe soit branché.
+   Les comptes listés ici (par email) ont un accès complet : pas de
+   flou sur les messages générés, pas de limite de quota.
+   ⚠️ À retirer une fois le vrai système de paiement en place.
+--------------------------------------------------------- */
+const ADMIN_EMAILS = ["runfaster66rf@gmail.com"]; // ajoute d'autres emails ici si besoin, séparés par des virgules
+function isPremiumUser(){
+  return !!(currentUser && ADMIN_EMAILS.includes(currentUser.email));
+}
 
 function renderAuthState(session){
   currentUser = session ? session.user : null;
@@ -954,7 +965,7 @@ document.getElementById('generate-btn').addEventListener('click', async ()=>{
   const tone = activeToneEl.getAttribute('data-tone');
 
   const remaining = renderQuota();
-  if(remaining <= 0){
+  if(remaining <= 0 && !isPremiumUser()){
     errorBox.innerHTML = `<div class="error-box">Tu as atteint la limite de ${MONTHLY_LIMIT} messages ce mois-ci. Passe à l'offre supérieure pour continuer sans limite.</div>`;
     setTimeout(()=>{ goToScreen(3); }, 1200);
     return;
@@ -976,22 +987,34 @@ document.getElementById('generate-btn').addEventListener('click', async ()=>{
     }
 
     const data = await response.json();
-    resultsBox.innerHTML = `
-      <div class="results-ready-wrap">
-        ${data.variants.map((v, i) => `
-          <div class="bubble blurred">
-            <div class="variant-tag">Variante ${i+1} · ${tone}</div>
-            <div style="margin-top:6px;">${v}</div>
-          </div>
-        `).join('')}
-        <div class="reveal-overlay">
-          <div class="reveal-icon">✨</div>
-          <h3>Tes 2 messages sont prêts !</h3>
-          <p>Débloque-les pour voir la version complète, les copier et les envoyer.</p>
-          <button class="btn-gradient" onclick="goToScreen(3)">Voir mes messages</button>
+
+    if(isPremiumUser()){
+      // Accès premium (temporaire, en attendant Stripe) : pas de flou, résultats visibles direct.
+      resultsBox.innerHTML = data.variants.map((v, i) => `
+        <div class="bubble">
+          <div class="variant-tag">Variante ${i+1} · ${tone}</div>
+          <div style="margin-top:6px;">${v}</div>
+          <div class="bubble-actions"><button class="copy-btn" onclick="copyVariant(this)" data-text="${v.replace(/"/g,'&quot;')}">Copier le message</button></div>
         </div>
-      </div>
-    `;
+      `).join('');
+    } else {
+      resultsBox.innerHTML = `
+        <div class="results-ready-wrap">
+          ${data.variants.map((v, i) => `
+            <div class="bubble blurred">
+              <div class="variant-tag">Variante ${i+1} · ${tone}</div>
+              <div style="margin-top:6px;">${v}</div>
+            </div>
+          `).join('')}
+          <div class="reveal-overlay">
+            <div class="reveal-icon">✨</div>
+            <h3>Tes 2 messages sont prêts !</h3>
+            <p>Débloque-les pour voir la version complète, les copier et les envoyer.</p>
+            <button class="btn-gradient" onclick="goToScreen(3)">Voir mes messages</button>
+          </div>
+        </div>
+      `;
+    }
 
     incrementUsage();
     renderQuota();
@@ -1012,8 +1035,8 @@ function showToast(msg){ const t=document.getElementById('toast'); t.textContent
 const COUNTDOWN_KEY = 'tmc_offer_expires_at';
 const COUNTDOWN_DURATION_MS = 10 * 60 * 1000; // 10 minutes depuis la première visite
 
-const LAUNCH_PRICING = { month: "6,99€", year: "3,99€", yearSub: "Facturé 47,88€/an", ribbon: "MEILLEURE OFFRE · -43%" };
-const NORMAL_PRICING = { month: "8,99€", year: "5,99€", yearSub: "Facturé 71,88€/an", ribbon: "TARIF STANDARD" };
+const LAUNCH_PRICING = { month: "4,99€", year: "3,49€", yearSub: "Facturé 41,88€/an", ribbon: "MEILLEURE OFFRE · -30%" };
+const NORMAL_PRICING = { month: "6,99€", year: "4,99€", yearSub: "Facturé 59,88€/an", ribbon: "TARIF STANDARD" };
 
 function getOrCreateExpiry(){
   let expiresAt = localStorage.getItem(COUNTDOWN_KEY);
