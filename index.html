@@ -649,7 +649,9 @@ const SUPABASE_ANON_KEY = "sb_publishable_QrB27SIE1N6_ToFzzU9PGA_YAGeAvJ7";
 let supabaseClient = null;
 try{
   if(window.supabase && !SUPABASE_URL.includes("TON-PROJET")){
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
   }
 }catch(e){ console.warn("Supabase non configuré :", e); }
 
@@ -698,8 +700,8 @@ document.getElementById('auth-form').addEventListener('submit', async (e)=>{
     if(result.error) throw result.error;
 
     showToast(authMode === 'signup' ? 'Compte créé ✓ Vérifie tes emails si besoin.' : 'Connecté ✓');
-    await updateAuthUI();
     closeAuth();
+    // Pas besoin d'appeler updateAuthUI ici : onAuthStateChange s'en charge automatiquement.
   }catch(err){
     errorBox.innerHTML = `<div class="error-box">${err.message || "Une erreur est survenue."}</div>`;
   }finally{
@@ -715,15 +717,17 @@ function signInWithGoogle(){
   }
   supabaseClient.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: window.location.origin + window.location.pathname }
   });
 }
 
-async function updateAuthUI(){
-  if(!supabaseClient) return;
-  const { data } = await supabaseClient.auth.getSession();
-  const session = data ? data.session : null;
-
+/* ---------------------------------------------------------
+   Mise à jour de l'UI de connexion — pilotée directement par
+   onAuthStateChange (fiable même juste après une redirection Google),
+   plutôt que par un simple appel isolé à getSession() qui peut
+   s'exécuter avant que Supabase ait fini de traiter la redirection.
+--------------------------------------------------------- */
+function renderAuthState(session){
   document.querySelectorAll('.nav-login-link').forEach(el=>{
     if(session){
       const user = session.user;
@@ -737,7 +741,6 @@ async function updateAuthUI(){
       el.onclick = async ()=>{
         await supabaseClient.auth.signOut();
         showToast('Déconnecté');
-        updateAuthUI();
       };
     } else {
       el.textContent = 'Se connecter';
@@ -745,10 +748,20 @@ async function updateAuthUI(){
     }
   });
 }
-updateAuthUI();
 
-// Si on revient d'une redirection Google (magic tokens dans l'URL), on rafraîchit l'UI
-supabaseClient && supabaseClient.auth.onAuthStateChange((_event, _session)=>{ updateAuthUI(); });
+if(supabaseClient){
+  supabaseClient.auth.onAuthStateChange((event, session)=>{
+    renderAuthState(session);
+    // Nettoie les tokens Google laissés dans l'URL après redirection, pour que ce soit propre.
+    if(event === 'SIGNED_IN' && (window.location.hash.includes('access_token') || window.location.search.includes('code='))){
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  });
+  // Rendu initial en cas de session déjà active (ex: retour sur le site après connexion précédente)
+  supabaseClient.auth.getSession().then(({ data })=>{ renderAuthState(data ? data.session : null); });
+} else {
+  renderAuthState(null);
+}
 
 const obQuestions = [
   { q: "Quel type de message te bloque le plus ?", options: ["Travail / boss", "Couple", "Famille & amis", "Autre situation"] },
