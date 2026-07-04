@@ -1,4 +1,3 @@
-
 // api/generate.js
 // Fonction serverless Vercel — appelle l'API Anthropic côté serveur.
 // La clé API reste secrète (jamais exposée au navigateur).
@@ -15,7 +14,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Méthode non autorisée. Utilise POST.' });
   }
 
-  const { situation, tone } = req.body || {};
+  const { situation, tone, length } = req.body || {};
 
   // Validation basique des entrées
   if (!situation || typeof situation !== 'string' || situation.trim().length === 0) {
@@ -28,6 +27,13 @@ module.exports = async (req, res) => {
   if (situation.length > 2000) {
     return res.status(400).json({ error: 'Situation trop longue (2000 caractères max).' });
   }
+
+  const LENGTH_PRESETS = {
+    court: { instruction: '2 à 3 phrases, direct et concis', maxTokens: 500 },
+    moyen: { instruction: '4 à 6 phrases, avec un peu plus de contexte', maxTokens: 800 },
+    long:  { instruction: '8 à 10 phrases, développé et détaillé', maxTokens: 1200 }
+  };
+  const preset = LENGTH_PRESETS[length] || LENGTH_PRESETS.court;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -46,9 +52,9 @@ module.exports = async (req, res) => {
         // Sonnet offre le meilleur compromis qualité/prix pour capter les nuances
         // de ton en français (voir la discussion pricing du projet).
         model: 'claude-sonnet-4-6',
-        max_tokens: 500,
+        max_tokens: preset.maxTokens,
         system:
-          "Tu es un assistant qui aide des francophones à formuler des messages personnels difficiles (conflits, demandes, mises au point). Réponds UNIQUEMENT avec un JSON valide, sans texte avant ni après, sans balises markdown, au format exact : {\"variants\": [\"message 1\", \"message 2\"]}. Fournis exactement 2 propositions de message, chacune courte (2 à 4 phrases), naturelles, prêtes à copier-coller telles quelles, dans le ton demandé par l'utilisateur.",
+          `Tu es un assistant qui aide des francophones à formuler des messages personnels difficiles (conflits, demandes, mises au point). Réponds UNIQUEMENT avec un JSON valide, sans texte avant ni après, sans balises markdown, au format exact : {"variants": ["message 1", "message 2"]}. Fournis exactement 2 propositions de message, naturelles, prêtes à copier-coller telles quelles, dans le ton demandé par l'utilisateur. Longueur attendue pour chaque message : ${preset.instruction}.`,
         messages: [
           { role: 'user', content: `Situation : ${situation}\n\nTon souhaité : ${tone}` }
         ]
