@@ -29,9 +29,9 @@ module.exports = async (req, res) => {
   }
 
   const LENGTH_PRESETS = {
-    court: { instruction: '2 à 3 phrases, direct et concis', maxTokens: 500 },
-    moyen: { instruction: '4 à 6 phrases, avec un peu plus de contexte', maxTokens: 800 },
-    long:  { instruction: '8 à 10 phrases, développé et détaillé', maxTokens: 1200 }
+    court: { instruction: '1 seule phrase, très direct et concis', maxTokens: 250 },
+    moyen: { instruction: '2 à 3 phrases maximum', maxTokens: 400 },
+    long:  { instruction: '4 à 5 phrases maximum, jamais plus', maxTokens: 600 }
   };
   const preset = LENGTH_PRESETS[length] || LENGTH_PRESETS.court;
 
