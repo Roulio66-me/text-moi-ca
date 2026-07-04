@@ -254,6 +254,59 @@
   @media (max-width: 560px){ .tone-grid, .steps-grid{ grid-template-columns:1fr; } .nav-links{ display:none; } }
 
   .field-label{ font-size:13px; font-weight:700; color: var(--ink-soft); margin-bottom:8px; display:block; }
+  .field-label-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .field-label-row .field-label{ margin-bottom:0; }
+  .char-counter{ font-family: var(--font-mono); font-size:11.5px; color: var(--ink-faint); }
+  .char-counter.warn{ color: var(--c-coral); }
+  .length-pills{ display:flex; gap:8px; }
+  .length-pill{
+    flex:1; padding:10px 0; border-radius:12px; border:1.5px solid var(--border); background:#fff;
+    font-family: var(--font-body); font-weight:700; font-size:13px; color: var(--ink-soft); cursor:pointer; transition: all .15s ease;
+  }
+  .length-pill:hover{ border-color: var(--c-violet); }
+  .length-pill.active{ background: var(--c-violet); border-color: var(--c-violet); color:#fff; }
+  .length-hint{ font-size:12px; color: var(--ink-faint); margin-top:10px; line-height:1.4; }
+
+  /* ---------- COMPOSER (nouvelle mise en page de l'outil) ---------- */
+  .composer-wrap{ max-width: 760px; margin: 0 auto; }
+  .composer-title{ text-align:center; font-size:34px; }
+  .composer-sub{ text-align:center; margin: 0 auto 30px; }
+  .composer-card{
+    background:#fff; border:1px solid var(--border); border-radius:28px;
+    padding: 20px 24px 18px; box-shadow: 0 30px 60px -30px var(--shadow);
+  }
+  .composer-card .field-label-row{ margin-bottom:6px; }
+  .composer-textarea{
+    width:100%; border:none; outline:none; resize:vertical; min-height:96px;
+    font-family: var(--font-body); font-size:15.5px; line-height:1.55; color: var(--ink); background:transparent;
+  }
+  .composer-textarea::placeholder{ color: var(--ink-faint); }
+  .composer-tones-row{ border-top:1px solid var(--border); margin-top:10px; padding-top:14px; }
+  .composer-tones-row .tone-chips{
+    display:flex; flex-wrap:nowrap; overflow-x:auto; gap:8px; padding-bottom:4px;
+    scrollbar-width:none; -ms-overflow-style:none;
+  }
+  .composer-tones-row .tone-chips::-webkit-scrollbar{ display:none; }
+  .composer-tones-row .tone-chip{ flex-shrink:0; }
+  .composer-footer-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    margin-top:14px; padding-top:14px; border-top:1px solid var(--border);
+  }
+  .composer-footer-row .length-pills{ display:flex; gap:6px; }
+  .composer-footer-row .length-pill{ padding:8px 14px; font-size:12px; flex:none; }
+  .composer-send-btn{ width:auto; padding:12px 28px; flex-shrink:0; }
+  .composer-meta-row{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    margin-top:16px; padding: 0 6px; flex-wrap:wrap;
+  }
+  .composer-meta-row .selected-tone{ margin-top:0; font-size:14px; }
+  .composer-meta-row .length-hint{ margin-top:0; text-align:right; }
+  @media (max-width: 560px){
+    .composer-footer-row{ flex-direction:column; align-items:stretch; }
+    .composer-send-btn{ width:100%; }
+    .composer-meta-row{ flex-direction:column; align-items:flex-start; }
+    .composer-meta-row .length-hint{ text-align:left; }
+  }
   textarea{
     width:100%; background:#fff; border:1px solid var(--border); border-radius:16px; padding:16px; color:var(--ink);
     font-family: var(--font-body); font-size:15px; line-height:1.55; resize:vertical; min-height:130px; margin-bottom:20px;
@@ -372,10 +425,9 @@
     background: var(--grad); filter: blur(150px); opacity:0.1; border-radius:50%; pointer-events:none; z-index:0;
   }
   #screen-tool.premium .app-body{ position:relative; z-index:1; }
-  #screen-tool.premium .side-panel{
+  #screen-tool.premium .composer-card{
     box-shadow: 0 30px 60px -30px var(--shadow), 0 0 0 1px rgba(122,92,250,0.08);
   }
-  #screen-tool.premium textarea{ box-shadow: 0 20px 40px -28px var(--shadow); }
   .premium-chip{
     display:inline-flex; align-items:center; gap:6px; padding:5px 13px; border-radius:100px;
     background: var(--grad); color:#fff; font-size:11.5px; font-weight:700; margin-left:10px;
@@ -538,27 +590,39 @@
 
   <!-- OUTIL -->
   <div class="screen" id="screen-tool">
-    <div class="app-body"><div class="container-wide">
-      <div class="app-eyebrow" id="tool-eyebrow">Ton assistant</div>
-      <h1 class="app-title" id="tool-title">Colle ton message,<br>on s'occupe du reste.</h1>
-      <p class="app-sub" id="tool-sub">Décris la situation ou colle ton brouillon. On te propose deux versions prêtes à envoyer, dans le ton que tu choisis.</p>
+    <div class="app-body"><div class="composer-wrap">
+      <div class="app-eyebrow" id="tool-eyebrow" style="text-align:center;">Ton assistant</div>
+      <h1 class="app-title composer-title" id="tool-title">Qu'est-ce qu'on doit <span class="gradient-text">se dire ?</span></h1>
+      <p class="app-sub composer-sub" id="tool-sub">Décris la situation ou colle ton brouillon. On te propose deux versions prêtes à envoyer, dans le ton que tu choisis.</p>
 
-      <div class="tool-layout">
-        <div>
-          <label class="field-label">La situation ou le brouillon</label>
-          <textarea id="situation" placeholder="Ex : Mon coloc ne fait jamais la vaisselle et je dois lui en reparler pour la 3e fois..."></textarea>
-          <button class="btn-gradient full" id="generate-btn">Générer ma réponse</button>
-          <div id="tool-error"></div>
-          <div class="results" id="results"></div>
+      <div class="composer-card">
+        <div class="field-label-row">
+          <span></span>
+          <span class="char-counter" id="char-counter">0/2000</span>
+        </div>
+        <textarea id="situation" class="composer-textarea" maxlength="2000" placeholder="Ex : Mon coloc ne fait jamais la vaisselle et je dois lui en reparler pour la 3e fois..."></textarea>
+
+        <div class="composer-tones-row">
+          <div class="tone-chips" id="tone-chips"></div>
         </div>
 
-        <div class="side-panel">
-          <label class="field-label">Choisis le ton</label>
-          <div class="tone-chips" id="tone-chips"></div>
-          <div class="selected-tone">Ton sélectionné : <span id="tone-label" style="color:var(--ink-faint);">Aucun pour l'instant</span></div>
-          <div class="error-box" id="tone-error" style="display:none;"></div>
+        <div class="composer-footer-row">
+          <div class="length-pills" id="length-pills">
+            <button type="button" class="length-pill active" data-length="court" onclick="selectLength(this)">Court</button>
+            <button type="button" class="length-pill" data-length="moyen" onclick="selectLength(this)">Moyen</button>
+            <button type="button" class="length-pill" data-length="long" onclick="selectLength(this)">Long</button>
+          </div>
+          <button class="btn-gradient composer-send-btn" id="generate-btn">Générer ma réponse</button>
         </div>
       </div>
+
+      <div class="composer-meta-row">
+        <div class="selected-tone" id="selected-tone-line">Ton sélectionné : <span id="tone-label" style="color:var(--ink-faint);">Aucun pour l'instant</span></div>
+        <p class="length-hint" id="length-hint">2 à 3 phrases, direct et concis</p>
+      </div>
+      <div class="error-box" id="tone-error" style="display:none;"></div>
+      <div id="tool-error"></div>
+      <div class="results" id="results"></div>
     </div></div>
   </div>
 
@@ -702,6 +766,11 @@ function scrollToSteps(){
   }, 50);
 }
 function goToScreen(i){
+  // Pour un compte premium, la landing n'est plus accessible : l'outil devient
+  // la vraie page d'accueil, peu importe le chemin emprunté pour y revenir (logo, etc.)
+  if(i === 0 && isPremiumUser()){
+    i = 2;
+  }
   screens.forEach((id,idx)=>{ document.getElementById(id).classList.toggle('active', idx===i); });
   document.getElementById('app-shell').style.display = (i===0) ? 'none' : 'block';
   document.getElementById('screen-auth').classList.remove('active');
@@ -1125,6 +1194,30 @@ function renderQuota(){
   return Math.max(0, MONTHLY_LIMIT - usage.count);
 }
 
+/* ---------------------------------------------------------
+   Compteur de caractères + sélecteur de longueur de sortie
+--------------------------------------------------------- */
+const situationInput = document.getElementById('situation');
+const charCounterEl = document.getElementById('char-counter');
+situationInput.addEventListener('input', ()=>{
+  const len = situationInput.value.length;
+  charCounterEl.textContent = `${len}/2000`;
+  charCounterEl.classList.toggle('warn', len > 1800);
+});
+
+let selectedLength = 'court';
+function selectLength(el){
+  document.querySelectorAll('.length-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  selectedLength = el.getAttribute('data-length');
+  document.getElementById('length-hint').textContent = LENGTH_LABELS[selectedLength];
+}
+const LENGTH_LABELS = {
+  court: '2 à 3 phrases, direct et concis',
+  moyen: '4 à 6 phrases, avec un peu plus de contexte',
+  long: '8 à 10 phrases, développé et détaillé'
+};
+
 document.getElementById('generate-btn').addEventListener('click', async ()=>{
   const situation = document.getElementById('situation').value.trim();
   const errorBox = document.getElementById('tool-error');
@@ -1160,7 +1253,7 @@ document.getElementById('generate-btn').addEventListener('click', async ()=>{
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ situation, tone })
+        body: JSON.stringify({ situation, tone, length: selectedLength })
       });
 
       if(!response.ok){
@@ -1182,12 +1275,16 @@ document.getElementById('generate-btn').addEventListener('click', async ()=>{
       // donc inutile de consommer de vrais tokens IA. On simule juste le temps de génération.
       await new Promise(resolve => setTimeout(resolve, 1400 + Math.random()*700));
 
+      const fakeLength = { court: 1, moyen: 2, long: 3 }[selectedLength] || 1;
+      const fakeSentence = "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore. ";
+      const fakeText = fakeSentence.repeat(fakeLength).trim();
+
       resultsBox.innerHTML = `
         <div class="results-ready-wrap">
           ${[0,1].map(i => `
             <div class="bubble blurred">
               <div class="variant-tag">Variante ${i+1} · ${tone}</div>
-              <div style="margin-top:6px;">Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore.</div>
+              <div style="margin-top:6px;">${fakeText}</div>
             </div>
           `).join('')}
           <div class="reveal-overlay">
