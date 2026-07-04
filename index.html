@@ -615,7 +615,7 @@
 
       <div class="composer-meta-row">
         <div class="selected-tone" id="selected-tone-line">Ton sélectionné : <span id="tone-label" style="color:var(--ink-faint);">Aucun pour l'instant</span></div>
-        <p class="length-hint" id="length-hint">2 à 3 phrases, direct et concis</p>
+        <p class="length-hint" id="length-hint">1 phrase, direct et concis</p>
       </div>
       <div class="error-box" id="tone-error" style="display:none;"></div>
       <div id="tool-error"></div>
@@ -1210,9 +1210,9 @@ function selectLength(el){
   document.getElementById('length-hint').textContent = LENGTH_LABELS[selectedLength];
 }
 const LENGTH_LABELS = {
-  court: '2 à 3 phrases, direct et concis',
-  moyen: '4 à 6 phrases, avec un peu plus de contexte',
-  long: '8 à 10 phrases, développé et détaillé'
+  court: '1 phrase, direct et concis',
+  moyen: '2 à 3 phrases',
+  long: '4 à 5 phrases maximum'
 };
 
 document.getElementById('generate-btn').addEventListener('click', async ()=>{
