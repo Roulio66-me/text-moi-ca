@@ -51,12 +51,6 @@
   .nav-links{ display:flex; gap: 32px; }
   .nav-links a{ color: var(--ink-soft); text-decoration:none; font-size:14.5px; font-weight:500; cursor:pointer; }
   .nav-links a:hover{ color: var(--ink); }
-  .dev-nav{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:200; }
-  .dev-nav button{
-    font-family: var(--font-mono); font-size: 11px; background: var(--bg-dark); color:#fff;
-    border:none; border-radius: 100px; padding: 8px 14px; cursor:pointer; opacity:.88;
-  }
-  .dev-nav button:hover{ opacity:1; }
 
   .btn-gradient{
     background: var(--grad); color:#fff; border:none; padding: 16px 30px; border-radius: 100px;
@@ -698,13 +692,6 @@
   </div></div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="dev-nav">
-  <button onclick="goToScreen(0)">Landing</button>
-  <button onclick="goToScreen(1)">① Onboarding</button>
-  <button onclick="goToScreen(2)">② Outil</button>
-  <button onclick="goToScreen(3)">③ Paywall</button>
-  <button onclick="goToAccount()">👤 Mon compte</button>
-</div>
 
 <script>
 const screens = ['screen-landing','screen-onboarding','screen-tool','screen-paywall'];
@@ -771,24 +758,30 @@ function maybeAutoEnterTool(){
 }
 
 /* ---------------------------------------------------------
-   Le questionnaire d'onboarding ne doit être fait qu'une seule fois
-   pour un utilisateur connecté. On garde une trace liée à son compte
-   (pas juste au navigateur) via son ID Supabase.
+   Le questionnaire d'onboarding ne doit être fait qu'une seule fois.
+   - Si connecté : lié au compte (ID Supabase), donc valable même en changeant de navigateur.
+   - Si pas connecté : lié au navigateur (clé anonyme), pour éviter de le revoir
+     à chaque visite en attendant que la personne se connecte.
 --------------------------------------------------------- */
+const ANONYMOUS_ONBOARDING_KEY = 'tmc_onboarding_done_anonymous';
 function hasCompletedOnboarding(){
-  if(!currentUser) return false;
-  return localStorage.getItem('tmc_onboarding_done_' + currentUser.id) === 'true';
+  if(currentUser){
+    return localStorage.getItem('tmc_onboarding_done_' + currentUser.id) === 'true';
+  }
+  return localStorage.getItem(ANONYMOUS_ONBOARDING_KEY) === 'true';
 }
 function markOnboardingDone(){
   if(currentUser){
     localStorage.setItem('tmc_onboarding_done_' + currentUser.id, 'true');
+  } else {
+    localStorage.setItem(ANONYMOUS_ONBOARDING_KEY, 'true');
   }
 }
 function startFlow(){
   if(hasCompletedOnboarding()){
     goToScreen(2); // déjà fait -> direct dans l'outil
   } else {
-    goToScreen(1); // première fois (ou pas connecté) -> questionnaire
+    goToScreen(1); // première fois -> questionnaire
   }
 }
 
