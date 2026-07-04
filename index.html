@@ -377,7 +377,7 @@
       <a onclick="goToScreen(3)">Tarifs</a>
     </div>
     <div class="nav-right">
-      <button class="nav-cta" onclick="goToScreen(1)">Essayer gratuitement</button>
+      <button class="nav-cta" onclick="startFlow()">Essayer gratuitement</button>
       <div class="nav-login-link" onclick="goToAuth()">Se connecter</div>
     </div>
   </nav>
@@ -388,7 +388,7 @@
       <h1 class="hero-title">Ne reste plus jamais<br><span class="gradient-text">bloqué devant un message.</span></h1>
       <p class="hero-sub">Décris ta situation, choisis ton ton, obtiens deux réponses prêtes à envoyer. En moins de 10 secondes.</p>
       <div class="hero-actions">
-        <button class="btn-gradient" onclick="goToScreen(1)">Écrire mon message</button>
+        <button class="btn-gradient" onclick="startFlow()">Écrire mon message</button>
         <button class="btn-text" onclick="scrollToSteps()">Voir comment ça marche →</button>
       </div>
     </div>
@@ -463,7 +463,7 @@
 
   <div class="cta-banner">
     <h2>Prêt à ne plus jamais chercher tes mots ?</h2>
-    <button class="btn-gradient" onclick="goToScreen(1)">Écrire mon premier message</button>
+    <button class="btn-gradient" onclick="startFlow()">Écrire mon premier message</button>
   </div>
 
   <footer>© Texte-moi ça — Un outil pour dire les choses, mieux.</footer>
@@ -515,7 +515,6 @@
           <label class="field-label">La situation ou le brouillon</label>
           <textarea id="situation" placeholder="Ex : Mon coloc ne fait jamais la vaisselle et je dois lui en reparler pour la 3e fois..."></textarea>
           <button class="btn-gradient full" id="generate-btn">Générer ma réponse</button>
-          <div class="quota-label" id="quota-info"></div>
           <div id="tool-error"></div>
           <div class="results" id="results"></div>
         </div>
@@ -640,6 +639,28 @@ function goToScreen(i){
 }
 
 /* ---------------------------------------------------------
+   Le questionnaire d'onboarding ne doit être fait qu'une seule fois
+   pour un utilisateur connecté. On garde une trace liée à son compte
+   (pas juste au navigateur) via son ID Supabase.
+--------------------------------------------------------- */
+function hasCompletedOnboarding(){
+  if(!currentUser) return false;
+  return localStorage.getItem('tmc_onboarding_done_' + currentUser.id) === 'true';
+}
+function markOnboardingDone(){
+  if(currentUser){
+    localStorage.setItem('tmc_onboarding_done_' + currentUser.id, 'true');
+  }
+}
+function startFlow(){
+  if(hasCompletedOnboarding()){
+    goToScreen(2); // déjà fait -> direct dans l'outil
+  } else {
+    goToScreen(1); // première fois (ou pas connecté) -> questionnaire
+  }
+}
+
+/* ---------------------------------------------------------
    AUTHENTIFICATION — Supabase (email + mot de passe)
    Étapes de configuration : voir README.md
 --------------------------------------------------------- */
@@ -727,7 +748,11 @@ function signInWithGoogle(){
    plutôt que par un simple appel isolé à getSession() qui peut
    s'exécuter avant que Supabase ait fini de traiter la redirection.
 --------------------------------------------------------- */
+let currentUser = null;
+
 function renderAuthState(session){
+  currentUser = session ? session.user : null;
+
   document.querySelectorAll('.nav-login-link').forEach(el=>{
     if(session){
       const user = session.user;
@@ -819,7 +844,7 @@ function runObLoader(){
     }, 550 * (i+1));
   });
 
-  setTimeout(()=>{ goToScreen(2); }, 550 * steps.length + 700);
+  setTimeout(()=>{ markOnboardingDone(); goToScreen(2); }, 550 * steps.length + 700);
 }
 renderObStep();
 
@@ -847,7 +872,7 @@ function renderToneCloud(){
   const cardHtml = (t, i) => {
     const rot = (i % 2 === 0) ? (4 + (i % 3)) : -(4 + (i % 3));
     return `
-      <div class="tone-showcase-card" style="--rot:${rot}deg;" onclick="goToScreen(1)">
+      <div class="tone-showcase-card" style="--rot:${rot}deg;" onclick="startFlow()">
         <div class="tsc-top"><span class="tsc-dot" style="background:${t.color}"></span><span class="tsc-name">${t.name}</span></div>
         <div class="tsc-bubble" style="background:${t.color}22; border-color:${t.color}55;">${t.example}</div>
       </div>`;
@@ -901,13 +926,11 @@ function incrementUsage(){
   return usage;
 }
 function renderQuota(){
+  // Le quota reste appliqué silencieusement (voir plus bas), mais ne s'affiche plus
+  // tant que l'utilisateur n'a pas pris d'abonnement.
   const usage = getUsage();
-  const remaining = Math.max(0, MONTHLY_LIMIT - usage.count);
-  const el = document.getElementById('quota-info');
-  if(el) el.textContent = `${remaining} message${remaining>1?'s':''} restant${remaining>1?'s':''} ce mois-ci`;
-  return remaining;
+  return Math.max(0, MONTHLY_LIMIT - usage.count);
 }
-renderQuota();
 
 document.getElementById('generate-btn').addEventListener('click', async ()=>{
   const situation = document.getElementById('situation').value.trim();
