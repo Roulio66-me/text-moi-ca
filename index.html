@@ -283,11 +283,8 @@
   .composer-textarea::placeholder{ color: var(--ink-faint); }
   .composer-tones-row{ border-top:1px solid var(--border); margin-top:10px; padding-top:14px; }
   .composer-tones-row .tone-chips{
-    display:flex; flex-wrap:nowrap; overflow-x:auto; gap:8px; padding-bottom:4px;
-    scrollbar-width:none; -ms-overflow-style:none;
+    display:flex; flex-wrap:wrap; gap:8px;
   }
-  .composer-tones-row .tone-chips::-webkit-scrollbar{ display:none; }
-  .composer-tones-row .tone-chip{ flex-shrink:0; }
   .composer-footer-row{
     display:flex; align-items:center; justify-content:space-between; gap:14px;
     margin-top:14px; padding-top:14px; border-top:1px solid var(--border);
